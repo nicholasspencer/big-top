@@ -1,0 +1,129 @@
+name: 'Beads Export'
+description: 'Export beads data to JSONL files via bd backup'
+
+inputs:
+  github-token:
+    description: 'GitHub token for pushing commits'
+    required: true
+  data-dir:
+    description: 'Directory for JSONL output'
+    required: false
+    default: 'data'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Beads
+      uses: ./big-top/.github/actions/setup-beads
+      id: setup
+
+    - name: Discover databases
+      shell: bash
+      id: discover
+      run: |
+        cd "${{ steps.setup.outputs.workspace }}"
+        # List all Dolt databases (each is a project)
+        DATABASES=$(dolt sql -q "SHOW DATABASES" -r csv | tail -n +2 | grep -v -E "^(information_schema|mysql)$")
+        echo "databases<<EOF" >> $GITHUB_OUTPUT
+        echo "${DATABASES}" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        echo "Found databases: ${DATABASES}"
+
+    - name: Export each project
+      shell: bash
+      run: |
+        WORKSPACE="${{ steps.setup.outputs.workspace }}"
+        DATA_DIR="${GITHUB_WORKSPACE}/${{ inputs.data-dir }}"
+        
+        cd "${WORKSPACE}"
+        DATABASES=$(dolt sql -q "SHOW DATABASES" -r csv | tail -n +2 | grep -v -E "^(information_schema|mysql)$")
+        
+        for DB in ${DATABASES}; do
+          echo "=== Exporting project: ${DB} ==="
+          PROJECT_DIR="${DATA_DIR}/${DB}"
+          mkdir -p "${PROJECT_DIR}"
+          
+          # Create a temp bd workspace for this project
+          TEMP_BD="/tmp/bd-export-${DB}"
+          mkdir -p "${TEMP_BD}"
+          cd "${TEMP_BD}"
+          
+          # Init bd with this project prefix, pointing at the shared Dolt workspace
+          bd init --prefix "${DB}" --sandbox 2>/dev/null || true
+          
+          # Configure to use the cloned Dolt data
+          export BEADS_DOLT_SERVER_MODE=0
+          
+          # Run bd backup
+          bd --db "${WORKSPACE}/.dolt/databases/${DB}/.beads/beads.db" backup 2>/dev/null || \
+            bd --sandbox backup 2>/dev/null || \
+            echo "Warning: bd backup failed for ${DB}, trying SQL export..."
+          
+          # If backup dir exists, copy JSONL files
+          if [ -d ".beads/backup" ]; then
+            for f in .beads/backup/*.jsonl; do
+              [ -f "$f" ] && cp "$f" "${PROJECT_DIR}/"
+            done
+          fi
+          
+          cd "${WORKSPACE}"
+          rm -rf "${TEMP_BD}"
+          
+          echo "Exported: $(ls -la ${PROJECT_DIR}/*.jsonl 2>/dev/null | wc -l) JSONL files for ${DB}"
+        done
+
+    - name: Generate manifest
+      shell: bash
+      run: |
+        DATA_DIR="${GITHUB_WORKSPACE}/${{ inputs.data-dir }}"
+        MANIFEST="${DATA_DIR}/manifest.json"
+        
+        echo "{" > "${MANIFEST}"
+        echo '  "generated_at": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",' >> "${MANIFEST}"
+        echo '  "projects": [' >> "${MANIFEST}"
+        
+        FIRST=true
+        for PROJECT_DIR in "${DATA_DIR}"/*/; do
+          [ -d "${PROJECT_DIR}" ] || continue
+          PROJECT=$(basename "${PROJECT_DIR}")
+          [ "${PROJECT}" = "." ] && continue
+          
+          ISSUE_COUNT=0
+          if [ -f "${PROJECT_DIR}/issues.jsonl" ]; then
+            ISSUE_COUNT=$(wc -l < "${PROJECT_DIR}/issues.jsonl" | tr -d ' ')
+          fi
+          
+          if [ "${FIRST}" = true ]; then
+            FIRST=false
+          else
+            echo ',' >> "${MANIFEST}"
+          fi
+          
+          printf '    {"name": "%s", "issue_count": %s}' "${PROJECT}" "${ISSUE_COUNT}" >> "${MANIFEST}"
+        done
+        
+        echo '' >> "${MANIFEST}"
+        echo '  ]' >> "${MANIFEST}"
+        echo '}' >> "${MANIFEST}"
+        
+        echo "Generated manifest:"
+        cat "${MANIFEST}"
+
+    - name: Commit and push JSONL
+      shell: bash
+      run: |
+        cd "${GITHUB_WORKSPACE}"
+        git config user.name "Big Top Bot"
+        git config user.email "big-top[bot]@users.noreply.github.com"
+        
+        git add "${{ inputs.data-dir }}/"
+        
+        if git diff --cached --quiet; then
+          echo "No changes to JSONL files"
+        else
+          git commit -m "chore: update JSONL export [skip ci]"
+          git push
+          echo "JSONL files updated and pushed"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}

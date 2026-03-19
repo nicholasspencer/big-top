@@ -1,0 +1,59 @@
+# Copy this file to .github/workflows/beads-write.yml in your beads-tracking repo
+name: Beads Write
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: 'Operation type'
+        required: true
+        type: choice
+        options:
+          - add-comment
+          - add-external-ref
+      issue_id:
+        description: 'Beads issue ID (e.g., big_top-bkj)'
+        required: true
+        type: string
+      project:
+        description: 'Project prefix (e.g., big_top)'
+        required: true
+        type: string
+      content:
+        description: 'Comment text or external ref value'
+        required: true
+        type: string
+      author:
+        description: 'Author name (for comments)'
+        required: false
+        type: string
+        default: 'Big Top User'
+
+permissions:
+  contents: write
+
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nicholasspencer/big-top
+          path: big-top
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - name: Execute write
+        uses: ./big-top/.github/actions/beads-write
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          operation: ${{ inputs.operation }}
+          issue-id: ${{ inputs.issue_id }}
+          project: ${{ inputs.project }}
+          content: ${{ inputs.content }}
+          author: ${{ inputs.author }}
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}/repo

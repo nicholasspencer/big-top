@@ -1,0 +1,33 @@
+# Copy this file to .github/workflows/beads-export.yml in your beads-tracking repo
+name: Export Beads to JSONL
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'data/**'
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Checkout big-top for the composite actions
+          repository: nicholasspencer/big-top
+          path: big-top
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          path: repo
+
+      - name: Export JSONL
+        uses: ./big-top/.github/actions/beads-export
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_WORKSPACE: ${{ github.workspace }}/repo

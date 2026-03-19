@@ -1,0 +1,61 @@
+# Copy this file to .github/workflows/deploy-gh-pages.yml in your beads-tracking repo
+name: Deploy Big Top Dashboard
+
+on:
+  # Redeploy when JSONL data changes
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+  # Allow manual deploys
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: nicholasspencer/big-top
+          path: big-top
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Build Flutter web app
+        working-directory: big-top
+        run: |
+          flutter pub get
+          flutter build web --release --base-href "/beads-tracking/"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: big-top/build/web
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

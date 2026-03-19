@@ -1,4 +1,21 @@
-
 # Dolt database files (added by bd init)
 .dolt/
 *.db
+
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# macOS
+.DS_Store
+
+# Metadata
+.metadata

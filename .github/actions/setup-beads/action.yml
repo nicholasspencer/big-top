@@ -1,0 +1,49 @@
+name: 'Setup Beads'
+description: 'Install Dolt and bd CLI tools, clone Dolt data from repo'
+
+inputs:
+  working-directory:
+    description: 'Working directory for Dolt workspace'
+    required: false
+    default: '/tmp/beads-workspace'
+
+outputs:
+  workspace:
+    description: 'Path to the Dolt workspace'
+    value: ${{ inputs.working-directory }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Dolt
+      shell: bash
+      run: |
+        curl -L https://github.com/dolthub/dolt/releases/latest/download/install.sh | sudo bash
+        dolt version
+
+    - name: Install bd
+      shell: bash
+      run: |
+        BD_VERSION=$(curl -s https://api.github.com/repos/steveyegge/beads/releases/latest | grep tag_name | cut -d'"' -f4 | sed 's/^v//')
+        echo "Installing bd v${BD_VERSION}..."
+        curl -L "https://github.com/steveyegge/beads/releases/download/v${BD_VERSION}/beads_${BD_VERSION}_linux_amd64.tar.gz" -o /tmp/beads.tar.gz
+        tar xzf /tmp/beads.tar.gz -C /tmp
+        sudo mv /tmp/bd /usr/local/bin/bd
+        bd --version
+
+    - name: Configure Dolt identity
+      shell: bash
+      run: |
+        dolt config --global --add user.email "big-top[bot]@users.noreply.github.com"
+        dolt config --global --add user.name "Big Top Bot"
+
+    - name: Clone Dolt data from repo
+      shell: bash
+      run: |
+        WORKSPACE="${{ inputs.working-directory }}"
+        REPO_DIR="${GITHUB_WORKSPACE}"
+        mkdir -p "${WORKSPACE}"
+        cd "${WORKSPACE}"
+        dolt init
+        dolt remote add origin "file://${REPO_DIR}"
+        dolt pull origin main || echo "Warning: pull failed, may be fresh repo"

@@ -1,0 +1,120 @@
+name: 'Beads Write'
+description: 'Write comments or external refs to beads via bd CLI'
+
+inputs:
+  github-token:
+    description: 'GitHub token for pushing commits'
+    required: true
+  operation:
+    description: 'Operation type: add-comment or add-external-ref'
+    required: true
+  issue-id:
+    description: 'Beads issue ID (e.g., big_top-bkj)'
+    required: true
+  project:
+    description: 'Project prefix / database name (e.g., big_top)'
+    required: true
+  content:
+    description: 'Comment text or external ref value'
+    required: true
+  author:
+    description: 'Author name (for comments)'
+    required: false
+    default: 'Big Top User'
+  data-dir:
+    description: 'Directory for JSONL output'
+    required: false
+    default: 'data'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate inputs
+      shell: bash
+      run: |
+        if [[ "${{ inputs.operation }}" != "add-comment" && "${{ inputs.operation }}" != "add-external-ref" ]]; then
+          echo "::error::Invalid operation: ${{ inputs.operation }}. Must be 'add-comment' or 'add-external-ref'."
+          exit 1
+        fi
+        
+        if [[ -z "${{ inputs.issue-id }}" ]]; then
+          echo "::error::issue-id is required"
+          exit 1
+        fi
+        
+        if [[ -z "${{ inputs.content }}" ]]; then
+          echo "::error::content is required"
+          exit 1
+        fi
+        
+        echo "Operation: ${{ inputs.operation }}"
+        echo "Issue: ${{ inputs.issue-id }}"
+        echo "Project: ${{ inputs.project }}"
+
+    - name: Setup Beads
+      uses: ./big-top/.github/actions/setup-beads
+      id: setup
+
+    - name: Execute write operation
+      shell: bash
+      run: |
+        WORKSPACE="${{ steps.setup.outputs.workspace }}"
+        cd "${WORKSPACE}"
+        
+        export BEADS_DOLT_SERVER_MODE=0
+        
+        case "${{ inputs.operation }}" in
+          add-comment)
+            echo "Adding comment to ${{ inputs.issue-id }}..."
+            bd --sandbox comments add "${{ inputs.issue-id }}" "${{ inputs.content }}" --actor "${{ inputs.author }}"
+            ;;
+          add-external-ref)
+            echo "Adding external ref to ${{ inputs.issue-id }}..."
+            bd --sandbox update "${{ inputs.issue-id }}" --external-ref "${{ inputs.content }}"
+            ;;
+        esac
+
+    - name: Push Dolt changes
+      shell: bash
+      run: |
+        WORKSPACE="${{ steps.setup.outputs.workspace }}"
+        cd "${WORKSPACE}"
+        bd --sandbox dolt commit -m "web: ${{ inputs.operation }} on ${{ inputs.issue-id }}" 2>/dev/null || true
+        dolt push origin main 2>/dev/null || echo "Warning: Dolt push failed"
+
+    - name: Re-export JSONL
+      shell: bash
+      run: |
+        WORKSPACE="${{ steps.setup.outputs.workspace }}"
+        DATA_DIR="${GITHUB_WORKSPACE}/${{ inputs.data-dir }}"
+        PROJECT_DIR="${DATA_DIR}/${{ inputs.project }}"
+        
+        mkdir -p "${PROJECT_DIR}"
+        cd "${WORKSPACE}"
+        
+        export BEADS_DOLT_SERVER_MODE=0
+        bd --sandbox backup 2>/dev/null || true
+        
+        if [ -d ".beads/backup" ]; then
+          for f in .beads/backup/*.jsonl; do
+            [ -f "$f" ] && cp "$f" "${PROJECT_DIR}/"
+          done
+        fi
+
+    - name: Commit and push JSONL
+      shell: bash
+      run: |
+        cd "${GITHUB_WORKSPACE}"
+        git config user.name "Big Top Bot"
+        git config user.email "big-top[bot]@users.noreply.github.com"
+        
+        git add "${{ inputs.data-dir }}/"
+        
+        if git diff --cached --quiet; then
+          echo "No JSONL changes"
+        else
+          git commit -m "chore: update JSONL after ${{ inputs.operation }} on ${{ inputs.issue-id }} [skip ci]"
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
