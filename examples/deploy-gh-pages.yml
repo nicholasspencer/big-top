@@ -1,4 +1,7 @@
-# Copy this file to .github/workflows/deploy-gh-pages.yml in your beads-tracking repo
+# Copy this file to .github/workflows/deploy-gh-pages.yml in your beads-tracking repo.
+#
+# Downloads a pre-built Big Top release tarball for fast deploys (~30s).
+# Falls back to building from source if no release is found.
 name: Deploy Big Top Dashboard
 
 on:
@@ -9,6 +12,11 @@ on:
       - 'data/**'
   # Allow manual deploys
   workflow_dispatch:
+
+# CHANGE THIS to match your repo name (used as the URL path prefix)
+env:
+  REPO_NAME: beads-tracking
+  BIG_TOP_REPO: nicholasspencer/big-top
 
 permissions:
   contents: read
@@ -25,21 +33,62 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/checkout@v4
+      # Try downloading the latest pre-built release (fast path — no Flutter needed)
+      - name: Download latest Big Top release
+        id: release
+        run: |
+          TARBALL_URL=$(gh api "repos/${{ env.BIG_TOP_REPO }}/releases/latest" \
+            --jq '.assets[] | select(.name | startswith("big-top-web-")) | .browser_download_url' \
+            2>/dev/null) || true
+
+          if [ -n "$TARBALL_URL" ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            mkdir -p _site
+            curl -sL "$TARBALL_URL" | tar -xzf - -C _site
+            echo "Downloaded pre-built release from $TARBALL_URL"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No release found — will build from source"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Fallback: build from source if no release tarball available
+      - name: Checkout Big Top source
+        if: steps.release.outputs.found == 'false'
+        uses: actions/checkout@v4
         with:
-          repository: nicholasspencer/big-top
+          repository: ${{ env.BIG_TOP_REPO }}
           path: big-top
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        if: steps.release.outputs.found == 'false'
+        uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          channel: stable
 
-      - name: Build Flutter web app
+      - name: Build from source
+        if: steps.release.outputs.found == 'false'
         working-directory: big-top
         run: |
           flutter pub get
-          flutter build web --release --base-href "/beads-tracking/"
+          flutter build web --release --base-href "/${{ env.REPO_NAME }}/"
+          mkdir -p ../_site
+          cp -r build/web/* ../_site/
+
+      # Patch base-href in pre-built release to match this repo
+      - name: Patch base-href
+        if: steps.release.outputs.found == 'true'
+        run: |
+          sed -i 's|<base href="[^"]*">|<base href="/${{ env.REPO_NAME }}/">|' _site/index.html
+
+      # Copy JSONL data into the site so the dashboard can read it
+      - name: Copy data
+        run: |
+          if [ -d data ]; then
+            cp -r data _site/data
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -47,7 +96,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: big-top/build/web
+          path: _site
 
   deploy:
     environment:
