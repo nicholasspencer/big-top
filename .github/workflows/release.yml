@@ -1,0 +1,50 @@
+# Release workflow: build Flutter web app and publish as a GitHub Release tarball.
+# Triggered on version tags (v*). The tarball is what beads-tracking repos download.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+# BASE_HREF can be overridden per-repo; defaults to root
+env:
+  BASE_HREF: /
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Build web
+        run: flutter build web --release --base-href "${{ env.BASE_HREF }}"
+
+      # Package build/web into a release tarball
+      - name: Package tarball
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          tar -czf "big-top-web-${VERSION}.tar.gz" -C build/web .
+          echo "TARBALL=big-top-web-${VERSION}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.TARBALL }}
+          generate_release_notes: true
