@@ -41,10 +41,20 @@ class IssuesProvider extends StateNotifier<IssuesState> {
       : _apiService = apiService,
         super(const IssuesState());
 
-  Future<void> loadIssues({required String token}) async {
+  Future<void> loadIssues({
+    required String token,
+    required String owner,
+    required String repo,
+    required String project,
+  }) async {
     state = state.copyWith(status: IssuesStatus.loading);
     try {
-      final issues = await _apiService.fetchIssues(token: token);
+      final issues = await _apiService.fetchIssues(
+        token: token,
+        owner: owner,
+        repo: repo,
+        project: project,
+      );
       state = state.copyWith(status: IssuesStatus.loaded, issues: issues);
     } catch (e) {
       state = state.copyWith(status: IssuesStatus.error, error: e.toString());
