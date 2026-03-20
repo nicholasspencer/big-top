@@ -3,5 +3,5 @@ targets:
     builders:
       freezed:
         options:
-          map: none
-          when: none
+          map: false
+          when: false
