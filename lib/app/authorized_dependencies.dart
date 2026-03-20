@@ -5,6 +5,7 @@ import 'package:provider/single_child_widget.dart';
 
 import '../core/async_value.dart';
 import '../models/auth_session.dart';
+import '../models/project_data.dart';
 import '../repositories/issues_repository.dart';
 import '../repositories/project_repository.dart';
 import '../services/github_api_service.dart';
@@ -20,7 +21,7 @@ class AuthorizedDependencies extends SingleChildStatelessWidget {
 
     return MultiProvider(
       providers: [
-        StateNotifierProvider<IssuesRepository, IssuesState>(
+        StateNotifierProvider<IssuesRepository, AsyncValue<ProjectData>>(
           create: (ctx) => IssuesRepository(
             apiService: ctx.read<GitHubApiService>(),
             token: authValue.requireData().token,

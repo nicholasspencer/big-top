@@ -1,56 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:state_notifier/state_notifier.dart';
 
-import '../models/comment.dart';
-import '../models/dependency.dart';
-import '../models/issue.dart';
-import '../models/label.dart';
+import '../core/async_value.dart';
+import '../models/project_data.dart';
 import '../services/github_api_service.dart';
 
-enum IssuesStatus { initial, loading, loaded, error }
-
-@immutable
-class IssuesState {
-  final IssuesStatus status;
-  final List<Issue> issues;
-  final List<Comment> comments;
-  final List<Label> labels;
-  final List<Dependency> dependencies;
-  final String? error;
-
-  const IssuesState({
-    this.status = IssuesStatus.initial,
-    this.issues = const [],
-    this.comments = const [],
-    this.labels = const [],
-    this.dependencies = const [],
-    this.error,
-  });
-
-  List<Issue> byStatus(String statusFilter) =>
-      issues.where((i) => i.status == statusFilter).toList();
-
-  IssuesState copyWith({
-    IssuesStatus? status,
-    List<Issue>? issues,
-    List<Comment>? comments,
-    List<Label>? labels,
-    List<Dependency>? dependencies,
-    String? error,
-  }) {
-    return IssuesState(
-      status: status ?? this.status,
-      issues: issues ?? this.issues,
-      comments: comments ?? this.comments,
-      labels: labels ?? this.labels,
-      dependencies: dependencies ?? this.dependencies,
-      error: error ?? this.error,
-    );
-  }
-}
-
-class IssuesRepository extends StateNotifier<IssuesState> {
+class IssuesRepository extends StateNotifier<AsyncValue<ProjectData>> {
   final GitHubApiService _apiService;
   final String _token;
   final int _maxRetries;
@@ -62,7 +17,7 @@ class IssuesRepository extends StateNotifier<IssuesState> {
   })  : _apiService = apiService,
         _token = token,
         _maxRetries = maxRetries,
-        super(const IssuesState());
+        super(const AsyncValue.none());
 
   /// Load all data for a project. Retry on transient failures.
   Future<void> loadProject({
@@ -70,7 +25,7 @@ class IssuesRepository extends StateNotifier<IssuesState> {
     required String repo,
     required String project,
   }) async {
-    state = state.copyWith(status: IssuesStatus.loading);
+    state = state.toActive(); // preserves previous data during refresh
     try {
       final data = await _fetchWithRetry(
         () => _apiService.fetchAllProjectData(
@@ -80,15 +35,9 @@ class IssuesRepository extends StateNotifier<IssuesState> {
           project: project,
         ),
       );
-      state = state.copyWith(
-        status: IssuesStatus.loaded,
-        issues: data.issues,
-        comments: data.comments,
-        labels: data.labels,
-        dependencies: data.dependencies,
-      );
-    } catch (e) {
-      state = state.copyWith(status: IssuesStatus.error, error: e.toString());
+      state = AsyncValue.done(data: data);
+    } catch (e, st) {
+      state = AsyncValue.done(error: e, stackTrace: st, data: state.data);
     }
   }
 

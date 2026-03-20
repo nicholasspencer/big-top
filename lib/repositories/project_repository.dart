@@ -1,25 +1,20 @@
-import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-@immutable
-class ProjectState {
-  final String? owner;
-  final String? repo;
-  final String? project;
+part 'project_repository.freezed.dart';
 
-  const ProjectState({this.owner, this.repo, this.project});
+@freezed
+sealed class ProjectState with _$ProjectState {
+  const ProjectState._();
+
+  const factory ProjectState({
+    String? owner,
+    String? repo,
+    String? project,
+  }) = _ProjectState;
 
   bool get isSelected => owner != null && repo != null;
-
   String get fullName => '$owner/$repo';
-
-  ProjectState copyWith({String? owner, String? repo, String? project}) {
-    return ProjectState(
-      owner: owner ?? this.owner,
-      repo: repo ?? this.repo,
-      project: project ?? this.project,
-    );
-  }
 }
 
 class ProjectRepository extends StateNotifier<ProjectState> {
