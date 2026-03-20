@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/auth_provider.dart';
+import '../repositories/auth_repository.dart';
 import '../widgets/status_column.dart';
 
 class BoardScreen extends StatelessWidget {
@@ -45,7 +45,7 @@ class BoardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sign out',
-            onPressed: () => context.read<AuthProvider>().logout(),
+            onPressed: () => context.read<AuthRepository>().logout(),
           ),
         ],
       ),
