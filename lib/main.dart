@@ -5,7 +5,8 @@ import 'app/app_dependencies.dart';
 import 'app/authorized_dependencies.dart';
 import 'app/router.dart';
 import 'app/theme.dart';
-import 'repositories/auth_repository.dart';
+import 'core/async_value.dart';
+import 'models/auth_session.dart';
 
 void main() {
   runApp(const BigTopApp());
@@ -32,7 +33,7 @@ class _BigTopRouter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Watch auth state so router refreshes on auth changes
-    context.watch<AuthState>();
+    context.watch<AsyncValue<AuthSession>>();
 
     return MaterialApp.router(
       title: 'Big Top',

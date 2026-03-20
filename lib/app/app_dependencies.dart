@@ -3,6 +3,8 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
+import '../core/async_value.dart';
+import '../models/auth_session.dart';
 import '../repositories/auth_repository.dart';
 import '../services/github_api_service.dart';
 import '../services/github_auth_service.dart';
@@ -16,7 +18,7 @@ class AppDependencies extends SingleChildStatelessWidget {
       providers: [
         Provider<GitHubAuthService>(create: (_) => GitHubAuthService()),
         Provider<GitHubApiService>(create: (_) => GitHubApiService()),
-        StateNotifierProvider<AuthRepository, AuthState>(
+        StateNotifierProvider<AuthRepository, AsyncValue<AuthSession>>(
           create: (ctx) => AuthRepository(
             authService: ctx.read<GitHubAuthService>(),
           )..tryRestoreSession(),

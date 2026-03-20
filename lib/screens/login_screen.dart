@@ -4,6 +4,8 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/async_value.dart';
+import '../models/auth_session.dart';
 import '../repositories/auth_repository.dart';
 import '../viewmodels/login_viewmodel.dart';
 
@@ -51,7 +53,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authState = context.watch<AuthState>();
+    final authValue = context.watch<AsyncValue<AuthSession>>();
+    final isAuthLoading =
+        authValue is AsyncValueWaiting || authValue is AsyncValueActive;
+    final authError = authValue.error?.toString();
 
     return StateNotifierBuilder<LoginState>(
       stateNotifier: _viewModel,
@@ -145,10 +150,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ] else ...[
                         FilledButton.icon(
-                          onPressed:
-                              authState.isLoading ? null : _startLogin,
+                          onPressed: isAuthLoading ? null : _startLogin,
                           icon: const Icon(Icons.login),
-                          label: authState.isLoading
+                          label: isAuthLoading
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,
@@ -161,10 +165,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                       if (loginState.error != null ||
-                          authState.error != null) ...[
+                          authError != null) ...[
                         const SizedBox(height: 16),
                         Text(
-                          loginState.error ?? authState.error ?? '',
+                          loginState.error ?? authError ?? '',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.error,
                           ),

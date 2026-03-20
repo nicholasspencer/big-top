@@ -3,7 +3,8 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-import '../repositories/auth_repository.dart';
+import '../core/async_value.dart';
+import '../models/auth_session.dart';
 import '../repositories/issues_repository.dart';
 import '../repositories/project_repository.dart';
 import '../services/github_api_service.dart';
@@ -13,16 +14,16 @@ class AuthorizedDependencies extends SingleChildStatelessWidget {
 
   @override
   Widget buildWithChild(BuildContext context, Widget? child) {
-    final authState = context.watch<AuthState>();
+    final authValue = context.watch<AsyncValue<AuthSession>>();
 
-    if (!authState.isAuthenticated) return child!;
+    if (!authValue.hasData) return child!;
 
     return MultiProvider(
       providers: [
         StateNotifierProvider<IssuesRepository, IssuesState>(
           create: (ctx) => IssuesRepository(
             apiService: ctx.read<GitHubApiService>(),
-            token: authState.token!,
+            token: authValue.requireData().token,
           ),
         ),
         StateNotifierProvider<ProjectRepository, ProjectState>(

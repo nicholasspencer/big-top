@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../core/async_value.dart';
+import '../models/auth_session.dart';
 import '../repositories/auth_repository.dart';
 import '../widgets/status_column.dart';
 
@@ -18,7 +20,8 @@ class BoardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authState = context.watch<AuthState>();
+    final authValue = context.watch<AsyncValue<AuthSession>>();
+    final session = authValue.data;
 
     return Scaffold(
       appBar: AppBar(
@@ -30,16 +33,16 @@ class BoardScreen extends StatelessWidget {
           ],
         ),
         actions: [
-          if (authState.username != null)
+          if (session?.username != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Chip(
-                avatar: authState.avatarUrl != null
+                avatar: session?.avatarUrl != null
                     ? CircleAvatar(
-                        backgroundImage: NetworkImage(authState.avatarUrl!),
+                        backgroundImage: NetworkImage(session!.avatarUrl!),
                       )
                     : null,
-                label: Text(authState.username!),
+                label: Text(session!.username!),
               ),
             ),
           IconButton(

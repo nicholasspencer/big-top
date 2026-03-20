@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../repositories/auth_repository.dart';
+import '../core/async_value.dart';
+import '../models/auth_session.dart';
 import '../screens/board_screen.dart';
 import '../screens/detail_screen.dart';
 import '../screens/login_screen.dart';
 
 GoRouter createRouter(BuildContext context) {
-  final authRepo = context.read<AuthRepository>();
-
   return GoRouter(
     initialLocation: '/',
     redirect: (BuildContext context, GoRouterState state) {
-      final authed = authRepo.isAuthenticated;
+      final authValue = context.read<AsyncValue<AuthSession>>();
+      final authed = authValue.hasData;
       final isLoggingIn = state.matchedLocation == '/login';
 
       if (!authed && !isLoggingIn) return '/login';
