@@ -1,21 +1,15 @@
-class Label {
-  final String issueId;
-  final String label;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Label({
-    required this.issueId,
-    required this.label,
-  });
+part 'label.freezed.dart';
+part 'label.g.dart';
 
-  factory Label.fromJson(Map<String, dynamic> json) {
-    return Label(
-      issueId: json['issue_id'] as String,
-      label: json['label'] as String,
-    );
-  }
+@freezed
+sealed class Label with _$Label {
+  @JsonSerializable(fieldRename: FieldRename.snake)
+  const factory Label({
+    required String issueId,
+    required String label,
+  }) = _Label;
 
-  Map<String, dynamic> toJson() => {
-        'issue_id': issueId,
-        'label': label,
-      };
+  factory Label.fromJson(Map<String, dynamic> json) => _$LabelFromJson(json);
 }
