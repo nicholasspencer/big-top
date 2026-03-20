@@ -40,11 +40,11 @@ class AuthState {
   }
 }
 
-class AuthProvider extends StateNotifier<AuthState> {
+class AuthRepository extends StateNotifier<AuthState> {
   final GitHubAuthService _authService;
 
-  AuthProvider({GitHubAuthService? authService})
-      : _authService = authService ?? GitHubAuthService(),
+  AuthRepository({required GitHubAuthService authService})
+      : _authService = authService,
         super(const AuthState());
 
   bool get isAuthenticated => state.isAuthenticated;

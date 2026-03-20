@@ -8,50 +8,24 @@ import '../models/dependency.dart';
 import '../models/event.dart';
 import '../models/issue.dart';
 import '../models/label.dart';
+import '../models/project_data.dart';
 
-/// Exception thrown when the GitHub API returns a 404.
-class GitHubNotFoundException implements Exception {
+/// Exception thrown for non-200 HTTP responses.
+class HttpException implements Exception {
+  final int statusCode;
   final String path;
-  const GitHubNotFoundException(this.path);
+  final String body;
+  const HttpException(this.statusCode, this.path, this.body);
 
   @override
-  String toString() => 'GitHub resource not found: $path';
-}
-
-/// Exception thrown when the GitHub API rate limit is exceeded.
-class GitHubRateLimitException implements Exception {
-  final DateTime resetAt;
-  const GitHubRateLimitException(this.resetAt);
-
-  @override
-  String toString() =>
-      'GitHub API rate limit exceeded. Resets at $resetAt';
-}
-
-/// All entity data for a single beads project.
-class ProjectData {
-  final List<Issue> issues;
-  final List<Comment> comments;
-  final List<Label> labels;
-  final List<Dependency> dependencies;
-  final List<Event> events;
-
-  const ProjectData({
-    this.issues = const [],
-    this.comments = const [],
-    this.labels = const [],
-    this.dependencies = const [],
-    this.events = const [],
-  });
+  String toString() => 'HTTP $statusCode for $path';
 }
 
 class GitHubApiService {
   final http.Client _client;
-  final int _maxRetries;
 
-  GitHubApiService({http.Client? client, int maxRetries = 3})
-      : _client = client ?? http.Client(),
-        _maxRetries = maxRetries;
+  GitHubApiService({http.Client? client})
+      : _client = client ?? http.Client();
 
   Map<String, String> _headers(String token) => {
         'Authorization': 'Bearer $token',
@@ -62,51 +36,15 @@ class GitHubApiService {
   String _contentsUrl(String owner, String repo, String path) =>
       'https://api.github.com/repos/$owner/$repo/contents/$path';
 
-  /// Perform a GET request with retry and exponential backoff.
-  Future<http.Response> _getWithRetry(Uri uri, Map<String, String> headers) async {
-    for (var attempt = 0; attempt <= _maxRetries; attempt++) {
-      try {
-        final response = await _client.get(uri, headers: headers);
-
-        // Check rate limiting.
-        final remaining = response.headers['x-ratelimit-remaining'];
-        if (remaining != null && int.parse(remaining) == 0) {
-          final resetEpoch =
-              int.parse(response.headers['x-ratelimit-reset'] ?? '0');
-          throw GitHubRateLimitException(
-            DateTime.fromMillisecondsSinceEpoch(resetEpoch * 1000),
-          );
-        }
-
-        // Retry on server errors (5xx).
-        if (response.statusCode >= 500 && attempt < _maxRetries) {
-          await Future<void>.delayed(
-            Duration(milliseconds: 500 * (1 << attempt)),
-          );
-          continue;
-        }
-
-        return response;
-      } on http.ClientException {
-        if (attempt >= _maxRetries) rethrow;
-        await Future<void>.delayed(
-          Duration(milliseconds: 500 * (1 << attempt)),
-        );
-      }
-    }
-    // Unreachable, but satisfies the analyzer.
-    throw StateError('Retry loop exited unexpectedly');
+  /// Perform a plain GET request.
+  Future<http.Response> _get(Uri uri, Map<String, String> headers) async {
+    return _client.get(uri, headers: headers);
   }
 
-  /// Handle non-200 responses with typed exceptions.
+  /// Handle non-200 responses.
   void _checkResponse(http.Response response, String path) {
     if (response.statusCode == 200) return;
-    if (response.statusCode == 404) {
-      throw GitHubNotFoundException(path);
-    }
-    throw Exception(
-      'GitHub API error ${response.statusCode} for $path',
-    );
+    throw HttpException(response.statusCode, path, response.body);
   }
 
   /// Generic JSONL fetcher: downloads a file and parses each line with [fromJson].
@@ -119,7 +57,7 @@ class GitHubApiService {
   }) async {
     final url = _contentsUrl(owner, repo, path);
     final response =
-        await _getWithRetry(Uri.parse(url), _headers(token));
+        await _get(Uri.parse(url), _headers(token));
     _checkResponse(response, path);
 
     final lines = const LineSplitter().convert(response.body);
@@ -218,7 +156,7 @@ class GitHubApiService {
     final path = 'data/manifest.json';
     final url = _contentsUrl(owner, repo, path);
     final response =
-        await _getWithRetry(Uri.parse(url), _headers(token));
+        await _get(Uri.parse(url), _headers(token));
     _checkResponse(response, path);
 
     return jsonDecode(response.body) as Map<String, dynamic>;

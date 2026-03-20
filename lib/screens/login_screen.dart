@@ -4,8 +4,8 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../providers/auth_provider.dart';
-import '../services/github_auth_service.dart';
+import '../repositories/auth_repository.dart';
+import '../viewmodels/login_viewmodel.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,55 +15,47 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  DeviceCodeResponse? _deviceCode;
-  bool _polling = false;
-  String? _error;
+  late final LoginViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = LoginViewModel(
+      authRepo: context.read<AuthRepository>(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
 
   Future<void> _startLogin() async {
-    setState(() {
-      _error = null;
+    // Listen for device code to open URL
+    late final Function() removeListener;
+    removeListener = _viewModel.addListener((loginState) {
+      if (loginState.deviceCode != null) {
+        removeListener();
+        final uri = Uri.parse(loginState.deviceCode!.verificationUri);
+        canLaunchUrl(uri).then((canLaunch) {
+          if (canLaunch) {
+            launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        });
+      }
     });
-
-    try {
-      final authProvider = context.read<AuthProvider>();
-      final deviceCode = await authProvider.startDeviceFlow();
-      setState(() {
-        _deviceCode = deviceCode;
-      });
-
-      // Open the verification URL
-      final uri = Uri.parse(deviceCode.verificationUri);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-
-      // Start polling
-      setState(() {
-        _polling = true;
-      });
-      await authProvider.pollForToken(deviceCode);
-      if (mounted) {
-        setState(() {
-          _polling = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _polling = false;
-        });
-      }
-    }
+    await _viewModel.startLogin();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final authState = context.watch<AuthState>();
 
-    return StateNotifierBuilder<AuthState>(
-      stateNotifier: context.read<AuthProvider>(),
-      builder: (context, authState, _) {
+    return StateNotifierBuilder<LoginState>(
+      stateNotifier: _viewModel,
+      builder: (context, loginState, _) {
         return Scaffold(
           body: Center(
             child: ConstrainedBox(
@@ -89,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      if (_deviceCode != null) ...[
+                      if (loginState.deviceCode != null) ...[
                         Text(
                           'Enter this code on GitHub:',
                           style: theme.textTheme.bodyMedium,
@@ -98,7 +90,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         InkWell(
                           onTap: () {
                             Clipboard.setData(
-                              ClipboardData(text: _deviceCode!.userCode),
+                              ClipboardData(
+                                  text: loginState.deviceCode!.userCode),
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Code copied!')),
@@ -115,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: SelectableText(
-                              _deviceCode!.userCode,
+                              loginState.deviceCode!.userCode,
                               style: theme.textTheme.headlineSmall?.copyWith(
                                 fontFamily: 'monospace',
                                 fontWeight: FontWeight.bold,
@@ -127,8 +120,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 12),
                         TextButton.icon(
                           onPressed: () async {
-                            final uri =
-                                Uri.parse(_deviceCode!.verificationUri);
+                            final uri = Uri.parse(
+                                loginState.deviceCode!.verificationUri);
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(uri,
                                   mode: LaunchMode.externalApplication);
@@ -137,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           icon: const Icon(Icons.open_in_new, size: 18),
                           label: const Text('Open github.com/login/device'),
                         ),
-                        if (_polling) ...[
+                        if (loginState.isPolling) ...[
                           const SizedBox(height: 24),
                           const SizedBox(
                             width: 24,
@@ -167,10 +160,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               : const Text('Sign in with GitHub'),
                         ),
                       ],
-                      if (_error != null || authState.error != null) ...[
+                      if (loginState.error != null ||
+                          authState.error != null) ...[
                         const SizedBox(height: 16),
                         Text(
-                          _error ?? authState.error ?? '',
+                          loginState.error ?? authState.error ?? '',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.error,
                           ),

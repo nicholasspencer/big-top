@@ -5,6 +5,7 @@ import 'package:big_top/models/dependency.dart';
 import 'package:big_top/models/event.dart';
 import 'package:big_top/models/issue.dart';
 import 'package:big_top/models/label.dart';
+import 'package:big_top/models/project_data.dart';
 import 'package:big_top/services/github_api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -68,7 +69,8 @@ final _manifestJson = {
 };
 
 /// Create a mock client that returns [body] for the given [expectedPath].
-MockClient _mockClient(String expectedPath, String body, {int statusCode = 200, Map<String, String>? headers}) {
+MockClient _mockClient(String expectedPath, String body,
+    {int statusCode = 200, Map<String, String>? headers}) {
   return MockClient((request) async {
     expect(request.url.path, contains(expectedPath));
     expect(request.headers['Authorization'], 'Bearer $_token');
@@ -256,11 +258,11 @@ void main() {
     });
 
     group('error handling', () {
-      test('throws GitHubNotFoundException on 404', () async {
+      test('throws HttpException on 404', () async {
         final client = _mockClient(
             'data/$_project/issues.jsonl', 'Not found',
             statusCode: 404);
-        final service = GitHubApiService(client: client, maxRetries: 0);
+        final service = GitHubApiService(client: client);
 
         expect(
           () => service.fetchIssues(
@@ -269,38 +271,32 @@ void main() {
             repo: _repo,
             project: _project,
           ),
-          throwsA(isA<GitHubNotFoundException>()),
+          throwsA(isA<HttpException>()),
         );
       });
 
-      test('throws GitHubRateLimitException when rate limited', () async {
-        final resetTime =
-            DateTime.now().add(const Duration(minutes: 5));
-        final client = MockClient((request) async {
-          return http.Response('rate limited', 403, headers: {
-            'x-ratelimit-remaining': '0',
-            'x-ratelimit-reset':
-                '${resetTime.millisecondsSinceEpoch ~/ 1000}',
-          });
-        });
-        final service = GitHubApiService(client: client, maxRetries: 0);
-
-        expect(
-          () => service.fetchIssues(
-            token: _token,
-            owner: _owner,
-            repo: _repo,
-            project: _project,
-          ),
-          throwsA(isA<GitHubRateLimitException>()),
-        );
-      });
-
-      test('throws Exception on other error status codes', () async {
+      test('throws HttpException on server error', () async {
         final client = _mockClient(
             'data/$_project/issues.jsonl', 'Server error',
+            statusCode: 500);
+        final service = GitHubApiService(client: client);
+
+        expect(
+          () => service.fetchIssues(
+            token: _token,
+            owner: _owner,
+            repo: _repo,
+            project: _project,
+          ),
+          throwsA(isA<HttpException>()),
+        );
+      });
+
+      test('throws HttpException on other error status codes', () async {
+        final client = _mockClient(
+            'data/$_project/issues.jsonl', 'Bad request',
             statusCode: 400);
-        final service = GitHubApiService(client: client, maxRetries: 0);
+        final service = GitHubApiService(client: client);
 
         expect(
           () => service.fetchIssues(
@@ -309,70 +305,7 @@ void main() {
             repo: _repo,
             project: _project,
           ),
-          throwsA(isA<Exception>()),
-        );
-      });
-    });
-
-    group('retry logic', () {
-      test('retries on 500 errors with exponential backoff', () async {
-        var attempts = 0;
-        final client = MockClient((request) async {
-          attempts++;
-          if (attempts < 3) {
-            return http.Response('Server error', 500);
-          }
-          return http.Response('${jsonEncode(_issueJson)}\n', 200);
-        });
-        final service = GitHubApiService(client: client, maxRetries: 3);
-
-        final issues = await service.fetchIssues(
-          token: _token,
-          owner: _owner,
-          repo: _repo,
-          project: _project,
-        );
-
-        expect(attempts, 3);
-        expect(issues, hasLength(1));
-      });
-
-      test('retries on ClientException', () async {
-        var attempts = 0;
-        final client = MockClient((request) async {
-          attempts++;
-          if (attempts < 2) {
-            throw http.ClientException('Connection failed');
-          }
-          return http.Response('${jsonEncode(_issueJson)}\n', 200);
-        });
-        final service = GitHubApiService(client: client, maxRetries: 2);
-
-        final issues = await service.fetchIssues(
-          token: _token,
-          owner: _owner,
-          repo: _repo,
-          project: _project,
-        );
-
-        expect(attempts, 2);
-        expect(issues, hasLength(1));
-      });
-
-      test('gives up after max retries on server error', () async {
-        final client = MockClient((request) async {
-          return http.Response('Server error', 500);
-        });
-        final service = GitHubApiService(client: client, maxRetries: 1);
-
-        expect(
-          () => service.fetchIssues(
-            token: _token,
-            owner: _owner,
-            repo: _repo,
-            project: _project,
-          ),
-          throwsA(isA<Exception>()),
+          throwsA(isA<HttpException>()),
         );
       });
     });
