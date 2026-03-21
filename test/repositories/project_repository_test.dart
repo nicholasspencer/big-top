@@ -1,4 +1,4 @@
-import 'package:big_top/repositories/project_repository.dart';
+import 'package:big_top/project/repositories/project_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

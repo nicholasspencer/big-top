@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../core/async_value.dart';
-import '../models/auth_session.dart';
-import '../repositories/auth_repository.dart';
+import 'package:big_top/core/async_value.dart';
+import 'package:big_top/auth/models/auth_session.dart';
+import 'package:big_top/auth/repositories/auth_repository.dart';
 import '../widgets/status_column.dart';
 
 class BoardScreen extends StatelessWidget {

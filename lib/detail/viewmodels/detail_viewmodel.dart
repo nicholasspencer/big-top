@@ -1,13 +1,13 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import '../core/async_value.dart';
-import '../models/comment.dart';
-import '../models/dependency.dart';
-import '../models/issue.dart';
-import '../models/label.dart';
-import '../models/project_data.dart';
-import '../repositories/issues_repository.dart';
+import 'package:big_top/core/async_value.dart';
+import 'package:big_top/project/models/comment.dart';
+import 'package:big_top/project/models/dependency.dart';
+import 'package:big_top/project/models/issue.dart';
+import 'package:big_top/project/models/label.dart';
+import 'package:big_top/project/models/project_data.dart';
+import 'package:big_top/project/repositories/issues_repository.dart';
 
 part 'detail_viewmodel.freezed.dart';
 

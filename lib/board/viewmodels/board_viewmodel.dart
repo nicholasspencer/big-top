@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import '../repositories/issues_repository.dart';
-import '../repositories/project_repository.dart';
+import 'package:big_top/project/repositories/issues_repository.dart';
+import 'package:big_top/project/repositories/project_repository.dart';
 
 part 'board_viewmodel.freezed.dart';
 

@@ -1,6 +1,6 @@
 import 'package:state_notifier/state_notifier.dart';
 
-import '../core/async_value.dart';
+import 'package:big_top/core/async_value.dart';
 import '../models/auth_session.dart';
 import '../services/github_auth_service.dart';
 

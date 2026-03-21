@@ -6,7 +6,7 @@ import 'app/authorized_dependencies.dart';
 import 'app/router.dart';
 import 'app/theme.dart';
 import 'core/async_value.dart';
-import 'models/auth_session.dart';
+import 'auth/models/auth_session.dart';
 
 void main() {
   runApp(const BigTopApp());

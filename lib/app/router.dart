@@ -3,10 +3,10 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../core/async_value.dart';
-import '../models/auth_session.dart';
-import '../screens/board_screen.dart';
-import '../screens/detail_screen.dart';
-import '../screens/login_screen.dart';
+import '../auth/models/auth_session.dart';
+import '../board/screens/board_screen.dart';
+import '../detail/screens/detail_screen.dart';
+import '../auth/screens/login_screen.dart';
 
 GoRouter createRouter(BuildContext context) {
   return GoRouter(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../models/issue.dart';
+import 'package:big_top/project/models/issue.dart';
 
 class IssueCard extends StatelessWidget {
   final Issue issue;

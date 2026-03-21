@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:big_top/core/async_value.dart';
-import 'package:big_top/repositories/issues_repository.dart';
-import 'package:big_top/services/github_api_service.dart';
+import 'package:big_top/project/repositories/issues_repository.dart';
+import 'package:big_top/project/services/github_api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

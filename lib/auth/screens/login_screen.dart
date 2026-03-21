@@ -4,7 +4,7 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../core/async_value.dart';
+import 'package:big_top/core/async_value.dart';
 import '../models/auth_session.dart';
 import '../repositories/auth_repository.dart';
 import '../viewmodels/login_viewmodel.dart';

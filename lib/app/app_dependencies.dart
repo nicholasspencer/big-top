@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../core/async_value.dart';
-import '../models/auth_session.dart';
-import '../repositories/auth_repository.dart';
-import '../services/github_api_service.dart';
-import '../services/github_auth_service.dart';
+import '../auth/models/auth_session.dart';
+import '../auth/repositories/auth_repository.dart';
+import '../project/services/github_api_service.dart';
+import '../auth/services/github_auth_service.dart';
 
 class AppDependencies extends SingleChildStatelessWidget {
   const AppDependencies({super.key, super.child});
