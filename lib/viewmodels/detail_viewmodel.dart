@@ -1,25 +1,24 @@
-import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
+import '../core/async_value.dart';
 import '../models/comment.dart';
 import '../models/dependency.dart';
 import '../models/issue.dart';
 import '../models/label.dart';
+import '../models/project_data.dart';
 import '../repositories/issues_repository.dart';
 
-@immutable
-class DetailState {
-  final Issue? issue;
-  final List<Comment> comments;
-  final List<Label> labels;
-  final List<Dependency> dependencies;
+part 'detail_viewmodel.freezed.dart';
 
-  const DetailState({
-    this.issue,
-    this.comments = const [],
-    this.labels = const [],
-    this.dependencies = const [],
-  });
+@freezed
+sealed class DetailState with _$DetailState {
+  const factory DetailState({
+    Issue? issue,
+    @Default([]) List<Comment> comments,
+    @Default([]) List<Label> labels,
+    @Default([]) List<Dependency> dependencies,
+  }) = _DetailState;
 }
 
 class DetailViewModel extends StateNotifier<DetailState> {
@@ -38,17 +37,19 @@ class DetailViewModel extends StateNotifier<DetailState> {
     _removeListener = _issuesRepo.addListener(_update);
   }
 
-  void _update(IssuesState issuesState) {
-    final issue = issuesState.issues
-        .where((i) => i.id == issueId)
-        .firstOrNull;
+  void _update(AsyncValue<ProjectData> value) {
+    final data = value.data;
+    if (data == null) {
+      state = const DetailState();
+      return;
+    }
     state = DetailState(
-      issue: issue,
+      issue: data.issues.where((i) => i.id == issueId).firstOrNull,
       comments:
-          issuesState.comments.where((c) => c.issueId == issueId).toList(),
+          data.comments.where((c) => c.issueId == issueId).toList(),
       labels:
-          issuesState.labels.where((l) => l.issueId == issueId).toList(),
-      dependencies: issuesState.dependencies
+          data.labels.where((l) => l.issueId == issueId).toList(),
+      dependencies: data.dependencies
           .where((d) => d.issueId == issueId || d.dependsOnId == issueId)
           .toList(),
     );

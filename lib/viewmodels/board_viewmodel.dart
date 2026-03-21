@@ -1,22 +1,17 @@
-import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 import '../repositories/issues_repository.dart';
 import '../repositories/project_repository.dart';
 
-@immutable
-class BoardState {
-  final bool isLoading;
-  final String? error;
+part 'board_viewmodel.freezed.dart';
 
-  const BoardState({this.isLoading = false, this.error});
-
-  BoardState copyWith({bool? isLoading, String? error, bool clearError = false}) {
-    return BoardState(
-      isLoading: isLoading ?? this.isLoading,
-      error: clearError ? null : (error ?? this.error),
-    );
-  }
+@freezed
+sealed class BoardState with _$BoardState {
+  const factory BoardState({
+    @Default(false) bool isLoading,
+    String? error,
+  }) = _BoardState;
 }
 
 class BoardViewModel extends StateNotifier<BoardState> {
@@ -43,7 +38,7 @@ class BoardViewModel extends StateNotifier<BoardState> {
     final projectState = _projectRepo.state;
     if (!projectState.isSelected) return;
 
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(isLoading: true, error: null);
     try {
       await _issuesRepo.loadProject(
         owner: projectState.owner!,

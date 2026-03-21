@@ -1,37 +1,19 @@
-class Event {
-  final String id;
-  final String issueId;
-  final String eventType;
-  final String actor;
-  final DateTime createdAt;
-  final Map<String, dynamic> data;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Event({
-    required this.id,
-    required this.issueId,
-    required this.eventType,
-    this.actor = '',
-    required this.createdAt,
-    this.data = const {},
-  });
+part 'event.freezed.dart';
+part 'event.g.dart';
 
-  factory Event.fromJson(Map<String, dynamic> json) {
-    return Event(
-      id: json['id'] as String,
-      issueId: json['issue_id'] as String,
-      eventType: json['event_type'] as String,
-      actor: (json['actor'] as String?) ?? '',
-      createdAt: DateTime.parse(json['created_at'] as String),
-      data: (json['data'] as Map<String, dynamic>?) ?? {},
-    );
-  }
+@freezed
+sealed class Event with _$Event {
+  @JsonSerializable(fieldRename: FieldRename.snake)
+  const factory Event({
+    required String id,
+    required String issueId,
+    required String eventType,
+    @Default('') String actor,
+    required DateTime createdAt,
+    @Default({}) Map<String, dynamic> data,
+  }) = _Event;
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'issue_id': issueId,
-        'event_type': eventType,
-        'actor': actor,
-        'created_at': createdAt.toIso8601String(),
-        'data': data,
-      };
+  factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
 }

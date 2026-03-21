@@ -1,3 +1,4 @@
+import 'package:big_top/core/async_value.dart';
 import 'package:big_top/repositories/auth_repository.dart';
 import 'package:big_top/services/github_auth_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,9 +61,9 @@ void main() {
     });
 
     test('initial state is unauthenticated', () {
-      expect(repo.state.isAuthenticated, isFalse);
-      expect(repo.state.isLoading, isFalse);
-      expect(repo.state.token, isNull);
+      expect(repo.isAuthenticated, isFalse);
+      expect(repo.state, isA<AsyncValueNone>());
+      expect(repo.state.data, isNull);
     });
 
     group('tryRestoreSession', () {
@@ -75,11 +76,11 @@ void main() {
 
         await repo.tryRestoreSession();
 
-        expect(repo.state.isAuthenticated, isTrue);
-        expect(repo.state.token, 'valid-token');
-        expect(repo.state.username, 'testuser');
-        expect(repo.state.avatarUrl, 'https://example.com/avatar.png');
-        expect(repo.state.isLoading, isFalse);
+        expect(repo.isAuthenticated, isTrue);
+        expect(repo.state.data?.token, 'valid-token');
+        expect(repo.state.data?.username, 'testuser');
+        expect(repo.state.data?.avatarUrl, 'https://example.com/avatar.png');
+        expect(repo.state, isA<AsyncValueDone>());
       });
 
       test('clears invalid token', () async {
@@ -88,8 +89,8 @@ void main() {
 
         await repo.tryRestoreSession();
 
-        expect(repo.state.isAuthenticated, isFalse);
-        expect(repo.state.isLoading, isFalse);
+        expect(repo.isAuthenticated, isFalse);
+        expect(repo.state, isA<AsyncValueNone>());
         expect(authService.clearTokenCalled, isTrue);
       });
 
@@ -98,8 +99,8 @@ void main() {
 
         await repo.tryRestoreSession();
 
-        expect(repo.state.isAuthenticated, isFalse);
-        expect(repo.state.isLoading, isFalse);
+        expect(repo.isAuthenticated, isFalse);
+        expect(repo.state, isA<AsyncValueNone>());
       });
     });
 
@@ -117,8 +118,8 @@ void main() {
         final result = await repo.startDeviceFlow();
 
         expect(result.userCode, 'ABCD-1234');
-        expect(repo.state.isLoading, isFalse);
-        expect(repo.state.error, isNull);
+        expect(repo.state, isA<AsyncValueActive>());
+        expect(repo.state.hasError, isFalse);
       });
 
       test('sets error on failure', () async {
@@ -150,9 +151,9 @@ void main() {
         final success = await repo.pollForToken(deviceCode);
 
         expect(success, isTrue);
-        expect(repo.state.isAuthenticated, isTrue);
-        expect(repo.state.token, 'new-token');
-        expect(repo.state.username, 'testuser');
+        expect(repo.isAuthenticated, isTrue);
+        expect(repo.state.data?.token, 'new-token');
+        expect(repo.state.data?.username, 'testuser');
       });
 
       test('sets error when poll returns null', () async {
@@ -161,8 +162,9 @@ void main() {
         final success = await repo.pollForToken(deviceCode);
 
         expect(success, isFalse);
-        expect(repo.state.isAuthenticated, isFalse);
-        expect(repo.state.error, 'Authorization expired or denied');
+        expect(repo.isAuthenticated, isFalse);
+        expect(repo.state.error.toString(),
+            'Exception: Authorization expired or denied');
       });
     });
 
@@ -172,14 +174,13 @@ void main() {
         authService.savedToken = 'token';
         authService.userResponse = {'login': 'user', 'avatar_url': ''};
         await repo.tryRestoreSession();
-        expect(repo.state.isAuthenticated, isTrue);
+        expect(repo.isAuthenticated, isTrue);
 
         // Then logout
         await repo.logout();
 
-        expect(repo.state.isAuthenticated, isFalse);
-        expect(repo.state.token, isNull);
-        expect(repo.state.username, isNull);
+        expect(repo.isAuthenticated, isFalse);
+        expect(repo.state.data, isNull);
         expect(authService.clearTokenCalled, isTrue);
       });
     });

@@ -1,6 +1,8 @@
 import 'package:big_top/app/authorized_dependencies.dart';
 import 'package:big_top/app/router.dart';
 import 'package:big_top/app/theme.dart';
+import 'package:big_top/core/async_value.dart';
+import 'package:big_top/models/auth_session.dart';
 import 'package:big_top/repositories/auth_repository.dart';
 import 'package:big_top/services/github_api_service.dart';
 import 'package:big_top/services/github_auth_service.dart';
@@ -40,14 +42,15 @@ void main() {
         providers: [
           Provider<GitHubAuthService>.value(value: authService),
           Provider<GitHubApiService>.value(value: apiService),
-          StateNotifierProvider<AuthRepository, AuthState>.value(
+          StateNotifierProvider<AuthRepository,
+              AsyncValue<AuthSession>>.value(
             value: authRepo,
           ),
           const AuthorizedDependencies(),
         ],
         child: Builder(
           builder: (context) {
-            context.watch<AuthState>();
+            context.watch<AsyncValue<AuthSession>>();
             return MaterialApp.router(
               title: 'Big Top',
               theme: BigTopTheme.light,

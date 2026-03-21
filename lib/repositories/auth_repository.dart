@@ -1,117 +1,81 @@
-import 'package:flutter/foundation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
+import '../core/async_value.dart';
+import '../models/auth_session.dart';
 import '../services/github_auth_service.dart';
 
-@immutable
-class AuthState {
-  final bool isLoading;
-  final String? token;
-  final String? username;
-  final String? avatarUrl;
-  final String? error;
-
-  const AuthState({
-    this.isLoading = false,
-    this.token,
-    this.username,
-    this.avatarUrl,
-    this.error,
-  });
-
-  bool get isAuthenticated => token != null;
-
-  AuthState copyWith({
-    bool? isLoading,
-    String? token,
-    String? username,
-    String? avatarUrl,
-    String? error,
-    bool clearToken = false,
-    bool clearError = false,
-  }) {
-    return AuthState(
-      isLoading: isLoading ?? this.isLoading,
-      token: clearToken ? null : (token ?? this.token),
-      username: clearToken ? null : (username ?? this.username),
-      avatarUrl: clearToken ? null : (avatarUrl ?? this.avatarUrl),
-      error: clearError ? null : (error ?? this.error),
-    );
-  }
-}
-
-class AuthRepository extends StateNotifier<AuthState> {
+class AuthRepository extends StateNotifier<AsyncValue<AuthSession>> {
   final GitHubAuthService _authService;
 
   AuthRepository({required GitHubAuthService authService})
       : _authService = authService,
-        super(const AuthState());
+        super(const AsyncValue.none());
 
-  bool get isAuthenticated => state.isAuthenticated;
+  bool get isAuthenticated => state.hasData;
 
   Future<void> tryRestoreSession() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.toWaiting();
     try {
       final token = await _authService.getSavedToken();
       if (token != null) {
         final user = await _authService.fetchUser(token);
         if (user != null) {
-          state = state.copyWith(
-            isLoading: false,
-            token: token,
-            username: user['login'] as String?,
-            avatarUrl: user['avatar_url'] as String?,
+          state = AsyncValue.done(
+            data: AuthSession(
+              token: token,
+              username: user['login'] as String?,
+              avatarUrl: user['avatar_url'] as String?,
+            ),
           );
           return;
         }
-        // Token is invalid, clear it
         await _authService.clearToken();
       }
-      state = state.copyWith(isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = const AsyncValue.none();
+    } catch (e, st) {
+      state = AsyncValue.done(error: e, stackTrace: st);
     }
   }
 
   Future<DeviceCodeResponse> startDeviceFlow() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.toWaiting();
     try {
       final deviceCode = await _authService.requestDeviceCode();
-      state = state.copyWith(isLoading: false);
+      state = state.toActive();
       return deviceCode;
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+    } catch (e, st) {
+      state = AsyncValue.done(error: e, stackTrace: st);
       rethrow;
     }
   }
 
   Future<bool> pollForToken(DeviceCodeResponse deviceCode) async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.toActive();
     try {
       final token = await _authService.pollForToken(deviceCode);
       if (token != null) {
         final user = await _authService.fetchUser(token);
-        state = state.copyWith(
-          isLoading: false,
-          token: token,
-          username: user?['login'] as String?,
-          avatarUrl: user?['avatar_url'] as String?,
+        state = AsyncValue.done(
+          data: AuthSession(
+            token: token,
+            username: user?['login'] as String?,
+            avatarUrl: user?['avatar_url'] as String?,
+          ),
         );
         return true;
       }
-      state = state.copyWith(
-        isLoading: false,
-        error: 'Authorization expired or denied',
+      state = AsyncValue.done(
+        error: Exception('Authorization expired or denied'),
       );
       return false;
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+    } catch (e, st) {
+      state = AsyncValue.done(error: e, stackTrace: st);
       return false;
     }
   }
 
   Future<void> logout() async {
     await _authService.clearToken();
-    state = const AuthState();
+    state = const AsyncValue.none();
   }
 }

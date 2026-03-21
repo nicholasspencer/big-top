@@ -1,37 +1,20 @@
-class Dependency {
-  final String issueId;
-  final String dependsOnId;
-  final String type;
-  final DateTime createdAt;
-  final String createdBy;
-  final String metadata;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  const Dependency({
-    required this.issueId,
-    required this.dependsOnId,
-    this.type = 'blocks',
-    required this.createdAt,
-    this.createdBy = '',
-    this.metadata = '{}',
-  });
+part 'dependency.freezed.dart';
+part 'dependency.g.dart';
 
-  factory Dependency.fromJson(Map<String, dynamic> json) {
-    return Dependency(
-      issueId: json['issue_id'] as String,
-      dependsOnId: json['depends_on_id'] as String,
-      type: (json['type'] as String?) ?? 'blocks',
-      createdAt: DateTime.parse(json['created_at'] as String),
-      createdBy: (json['created_by'] as String?) ?? '',
-      metadata: (json['metadata'] as String?) ?? '{}',
-    );
-  }
+@freezed
+sealed class Dependency with _$Dependency {
+  @JsonSerializable(fieldRename: FieldRename.snake)
+  const factory Dependency({
+    required String issueId,
+    required String dependsOnId,
+    @Default('blocks') String type,
+    required DateTime createdAt,
+    @Default('') String createdBy,
+    @Default('{}') String metadata,
+  }) = _Dependency;
 
-  Map<String, dynamic> toJson() => {
-        'issue_id': issueId,
-        'depends_on_id': dependsOnId,
-        'type': type,
-        'created_at': createdAt.toIso8601String(),
-        'created_by': createdBy,
-        'metadata': metadata,
-      };
+  factory Dependency.fromJson(Map<String, dynamic> json) =>
+      _$DependencyFromJson(json);
 }

@@ -1,30 +1,18 @@
-import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 import '../repositories/auth_repository.dart';
 import '../services/github_auth_service.dart';
 
-@immutable
-class LoginState {
-  final bool isPolling;
-  final DeviceCodeResponse? deviceCode;
-  final String? error;
+part 'login_viewmodel.freezed.dart';
 
-  const LoginState({this.isPolling = false, this.deviceCode, this.error});
-
-  LoginState copyWith({
-    bool? isPolling,
+@freezed
+sealed class LoginState with _$LoginState {
+  const factory LoginState({
+    @Default(false) bool isPolling,
     DeviceCodeResponse? deviceCode,
     String? error,
-    bool clearDeviceCode = false,
-    bool clearError = false,
-  }) {
-    return LoginState(
-      isPolling: isPolling ?? this.isPolling,
-      deviceCode: clearDeviceCode ? null : (deviceCode ?? this.deviceCode),
-      error: clearError ? null : (error ?? this.error),
-    );
-  }
+  }) = _LoginState;
 }
 
 class LoginViewModel extends StateNotifier<LoginState> {
@@ -35,7 +23,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
         super(const LoginState());
 
   Future<void> startLogin() async {
-    state = state.copyWith(clearError: true, clearDeviceCode: true);
+    state = const LoginState();
     try {
       final deviceCode = await _authRepo.startDeviceFlow();
       state = state.copyWith(deviceCode: deviceCode);

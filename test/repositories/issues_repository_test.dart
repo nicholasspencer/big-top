@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:big_top/core/async_value.dart';
 import 'package:big_top/repositories/issues_repository.dart';
 import 'package:big_top/services/github_api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -81,14 +82,14 @@ MockClient _successClient() {
 
 void main() {
   group('IssuesRepository', () {
-    test('initial state is IssuesStatus.initial', () {
+    test('initial state is AsyncValue.none', () {
       final service = GitHubApiService(client: _successClient());
       final repo = IssuesRepository(
         apiService: service,
         token: _token,
       );
-      expect(repo.state.status, IssuesStatus.initial);
-      expect(repo.state.issues, isEmpty);
+      expect(repo.state, isA<AsyncValueNone>());
+      expect(repo.state.data, isNull);
       repo.dispose();
     });
 
@@ -105,12 +106,12 @@ void main() {
         project: _project,
       );
 
-      expect(repo.state.status, IssuesStatus.loaded);
-      expect(repo.state.issues, hasLength(1));
-      expect(repo.state.issues.first.id, 'issue-001');
-      expect(repo.state.comments, hasLength(1));
-      expect(repo.state.labels, hasLength(1));
-      expect(repo.state.dependencies, hasLength(1));
+      expect(repo.state, isA<AsyncValueDone>());
+      expect(repo.state.data?.issues, hasLength(1));
+      expect(repo.state.data?.issues.first.id, 'issue-001');
+      expect(repo.state.data?.comments, hasLength(1));
+      expect(repo.state.data?.labels, hasLength(1));
+      expect(repo.state.data?.dependencies, hasLength(1));
       repo.dispose();
     });
 
@@ -131,7 +132,8 @@ void main() {
         project: _project,
       );
 
-      expect(repo.state.status, IssuesStatus.error);
+      expect(repo.state, isA<AsyncValueDone>());
+      expect(repo.state.hasError, isTrue);
       expect(repo.state.error, isNotNull);
       repo.dispose();
     });
@@ -140,9 +142,6 @@ void main() {
       var attempts = 0;
       final client = MockClient((request) async {
         attempts++;
-        // First call for each of 5 parallel fetches fails, then succeeds
-        // Since fetchAllProjectData does 5 parallel fetches, we need to be smarter.
-        // Let's just make the first 5 calls fail (one per file), then succeed.
         if (attempts <= 5) {
           return http.Response('Server error', 500);
         }
@@ -176,10 +175,8 @@ void main() {
         project: _project,
       );
 
-      // Retry happens at the repository level wrapping fetchAllProjectData,
-      // so the entire parallel fetch is retried.
-      expect(repo.state.status, IssuesStatus.loaded);
-      expect(repo.state.issues, hasLength(1));
+      expect(repo.state, isA<AsyncValueDone>());
+      expect(repo.state.data?.issues, hasLength(1));
       repo.dispose();
     });
 
@@ -196,8 +193,9 @@ void main() {
         project: _project,
       );
 
-      expect(repo.state.byStatus('open'), hasLength(1));
-      expect(repo.state.byStatus('closed'), isEmpty);
+      final issues = repo.state.data?.issues ?? [];
+      expect(issues.where((i) => i.status == 'open'), hasLength(1));
+      expect(issues.where((i) => i.status == 'closed'), isEmpty);
       repo.dispose();
     });
   });
