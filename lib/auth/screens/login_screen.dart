@@ -3,8 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/logger.dart';
 import '../repositories/auth_repository.dart';
 import '../services/github_auth_service.dart';
+
+const _tag = 'LoginScreen';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _error;
 
   Future<void> _startLogin() async {
+    Log.d(_tag, 'startLogin tapped');
     setState(() {
       _isLoading = true;
       _error = null;
@@ -30,22 +34,33 @@ class _LoginScreenState extends State<LoginScreen> {
     final authRepo = context.read<AuthRepository>();
 
     try {
+      Log.d(_tag, 'Calling startDeviceFlow...');
       final deviceCode = await authRepo.startDeviceFlow();
+      Log.d(_tag, 'Got device code: ${deviceCode.userCode}');
 
-      if (!mounted) return;
+      if (!mounted) {
+        Log.d(_tag, 'Widget unmounted after startDeviceFlow');
+        return;
+      }
       setState(() {
         _deviceCode = deviceCode;
         _isPolling = true;
       });
+      Log.d(_tag, 'setState done — deviceCode set, showing code UI');
 
       // Launch verification URL
       final uri = Uri.parse(deviceCode.verificationUri);
-      if (await canLaunchUrl(uri)) {
+      final canLaunch = await canLaunchUrl(uri);
+      Log.d(_tag, 'canLaunchUrl: $canLaunch');
+      if (canLaunch) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
+        Log.d(_tag, 'URL launched');
       }
 
       // Poll for token
+      Log.d(_tag, 'Starting token poll...');
       final success = await authRepo.pollForToken(deviceCode);
+      Log.d(_tag, 'Poll result: success=$success');
 
       if (!mounted) return;
       if (!success) {
@@ -58,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       // If success, the router redirect handles navigation.
     } catch (e) {
+      Log.e(_tag, 'startLogin error', e);
       if (!mounted) return;
       setState(() {
         _isLoading = false;

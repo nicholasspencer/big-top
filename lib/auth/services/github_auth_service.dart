@@ -4,6 +4,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/logger.dart';
+
+const _tag = 'AuthService';
+
 class DeviceCodeResponse {
   final String deviceCode;
   final String userCode;
@@ -42,25 +46,32 @@ class GitHubAuthService {
 
   Future<String?> getSavedToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_tokenKey);
+    final token = prefs.getString(_tokenKey);
+    Log.d(_tag, 'getSavedToken: ${token != null ? "found" : "null"}');
+    return token;
   }
 
   Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
+    Log.d(_tag, 'Token saved');
   }
 
   Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    Log.d(_tag, 'Token cleared');
   }
 
   /// Step 1: Request a device code from GitHub.
   Future<DeviceCodeResponse> requestDeviceCode() async {
+    final url = '$proxyUrl/github/device/code';
+    Log.d(_tag, 'requestDeviceCode → POST $url');
+
     final http.Response response;
     try {
       response = await _client.post(
-        Uri.parse('$proxyUrl/github/device/code'),
+        Uri.parse(url),
         headers: {'Accept': 'application/json'},
         body: {
           'client_id': clientId,
@@ -68,16 +79,25 @@ class GitHubAuthService {
         },
       ).timeout(_requestTimeout);
     } on TimeoutException {
+      Log.e(_tag, 'requestDeviceCode TIMEOUT after ${_requestTimeout.inSeconds}s');
       throw Exception(
         'Request timed out. The auth proxy may be unreachable.',
       );
+    } catch (e) {
+      Log.e(_tag, 'requestDeviceCode FAILED', e);
+      rethrow;
     }
 
+    Log.d(_tag, 'requestDeviceCode ← ${response.statusCode} (${response.body.length} bytes)');
+
     if (response.statusCode != 200) {
+      Log.e(_tag, 'requestDeviceCode bad status: ${response.statusCode} ${response.body}');
       throw Exception('Failed to request device code: ${response.statusCode}');
     }
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;
+    Log.d(_tag, 'Device code: ${json['user_code']}, interval: ${json['interval']}');
+
     return DeviceCodeResponse(
       deviceCode: json['device_code'] as String,
       userCode: json['user_code'] as String,
@@ -88,15 +108,17 @@ class GitHubAuthService {
   }
 
   /// Step 2: Poll for the access token after user authorizes.
-  /// Returns the access token when the user completes authorization,
-  /// or null if the device code expires.
   Future<String?> pollForToken(DeviceCodeResponse deviceCode) async {
     final deadline =
         DateTime.now().add(Duration(seconds: deviceCode.expiresIn));
     final interval = Duration(seconds: deviceCode.interval);
+    var attempt = 0;
+
+    Log.d(_tag, 'pollForToken starting (expires in ${deviceCode.expiresIn}s)');
 
     while (DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(interval);
+      attempt++;
 
       final http.Response response;
       try {
@@ -110,21 +132,29 @@ class GitHubAuthService {
           },
         ).timeout(_requestTimeout);
       } on TimeoutException {
-        continue; // retry on timeout during polling
-      } catch (_) {
-        continue; // retry on network errors during polling
+        Log.d(_tag, 'pollForToken attempt #$attempt: timeout, retrying');
+        continue;
+      } catch (e) {
+        Log.d(_tag, 'pollForToken attempt #$attempt: error ($e), retrying');
+        continue;
       }
 
-      if (response.statusCode != 200) continue;
+      if (response.statusCode != 200) {
+        Log.d(_tag, 'pollForToken attempt #$attempt: status ${response.statusCode}');
+        continue;
+      }
 
       final json = jsonDecode(response.body) as Map<String, dynamic>;
       final error = json['error'] as String?;
 
       if (error == null) {
         final token = json['access_token'] as String;
+        Log.d(_tag, 'pollForToken attempt #$attempt: GOT TOKEN');
         await saveToken(token);
         return token;
       }
+
+      Log.d(_tag, 'pollForToken attempt #$attempt: $error');
 
       if (error == 'expired_token' || error == 'access_denied') {
         return null;
@@ -136,11 +166,13 @@ class GitHubAuthService {
       }
     }
 
+    Log.d(_tag, 'pollForToken: expired after $attempt attempts');
     return null;
   }
 
   /// Fetch the authenticated user's info.
   Future<Map<String, dynamic>?> fetchUser(String token) async {
+    Log.d(_tag, 'fetchUser → GET api.github.com/user');
     final response = await _client.get(
       Uri.parse('https://api.github.com/user'),
       headers: {
@@ -148,6 +180,8 @@ class GitHubAuthService {
         'Accept': 'application/vnd.github+json',
       },
     ).timeout(_requestTimeout);
+
+    Log.d(_tag, 'fetchUser ← ${response.statusCode}');
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
