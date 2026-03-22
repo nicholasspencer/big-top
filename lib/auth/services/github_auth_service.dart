@@ -25,6 +25,14 @@ class GitHubAuthService {
   static const String _tokenKey = 'github_access_token';
   static const String _scope = 'repo';
 
+  /// CORS proxy URL for GitHub OAuth endpoints (device flow).
+  /// Set via --dart-define=PROXY_URL=... at build time.
+  /// Falls back to localhost for local dev.
+  static const String proxyUrl = String.fromEnvironment(
+    'PROXY_URL',
+    defaultValue: 'http://localhost:8787',
+  );
+
   final http.Client _client;
 
   GitHubAuthService({http.Client? client}) : _client = client ?? http.Client();
@@ -47,7 +55,7 @@ class GitHubAuthService {
   /// Step 1: Request a device code from GitHub.
   Future<DeviceCodeResponse> requestDeviceCode() async {
     final response = await _client.post(
-      Uri.parse('https://github.com/login/device/code'),
+      Uri.parse('$proxyUrl/github/device/code'),
       headers: {'Accept': 'application/json'},
       body: {
         'client_id': clientId,
@@ -81,7 +89,7 @@ class GitHubAuthService {
       await Future<void>.delayed(interval);
 
       final response = await _client.post(
-        Uri.parse('https://github.com/login/oauth/access_token'),
+        Uri.parse('$proxyUrl/github/oauth/token'),
         headers: {'Accept': 'application/json'},
         body: {
           'client_id': clientId,

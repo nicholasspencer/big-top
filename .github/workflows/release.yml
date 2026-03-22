@@ -7,9 +7,10 @@ on:
     tags:
       - 'v*'
 
-# BASE_HREF can be overridden per-repo; defaults to root
+# BASE_HREF and PROXY_URL can be overridden per-repo
 env:
   BASE_HREF: /
+  PROXY_URL: ''
 
 permissions:
   contents: write
@@ -34,7 +35,12 @@ jobs:
         run: flutter test
 
       - name: Build web
-        run: flutter build web --release --base-href "${{ env.BASE_HREF }}"
+        run: |
+          DEFINE_ARGS=""
+          if [ -n "${{ env.PROXY_URL }}" ]; then
+            DEFINE_ARGS="--dart-define=PROXY_URL=${{ env.PROXY_URL }}"
+          fi
+          flutter build web --release --base-href "${{ env.BASE_HREF }}" $DEFINE_ARGS
 
       # Package build/web into a release tarball
       - name: Package tarball
