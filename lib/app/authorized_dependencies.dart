@@ -7,6 +7,7 @@ import '../core/async_value.dart';
 import '../auth/models/auth_session.dart';
 import '../project/models/project_data.dart';
 import '../project/repositories/project_data_repository.dart';
+import '../board/interactors/board_selector.dart';
 import '../project/interactors/project_interactor.dart';
 import '../project/services/github_api_service.dart';
 
@@ -29,6 +30,11 @@ class AuthorizedDependencies extends SingleChildStatelessWidget {
         ),
         StateNotifierProvider<ProjectInteractor, ProjectInteractorState>(
           create: (ctx) => ProjectInteractor(
+            dataRepo: ctx.read<ProjectDataRepository>(),
+          ),
+        ),
+        StateNotifierProvider<BoardSelector, BoardSelectorState>(
+          create: (ctx) => BoardSelector(
             dataRepo: ctx.read<ProjectDataRepository>(),
           ),
         ),

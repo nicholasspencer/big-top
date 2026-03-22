@@ -14,38 +14,114 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$BoardState {
 
- bool get isLoading; String? get error;
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardState);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'BoardState()';
+}
+
+
+}
+
+/// @nodoc
+class $BoardStateCopyWith<$Res>  {
+$BoardStateCopyWith(BoardState _, $Res Function(BoardState) __);
+}
+
+
+
+/// @nodoc
+
+
+class BoardStateLoading implements BoardState {
+  const BoardStateLoading();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardStateLoading);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'BoardState.loading()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class BoardStateLoaded implements BoardState {
+  const BoardStateLoaded({required final  List<BoardColumn> columns, this.username, this.avatarUrl}): _columns = columns;
+  
+
+ final  List<BoardColumn> _columns;
+ List<BoardColumn> get columns {
+  if (_columns is EqualUnmodifiableListView) return _columns;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_columns);
+}
+
+ final  String? username;
+ final  String? avatarUrl;
+
 /// Create a copy of BoardState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$BoardStateCopyWith<BoardState> get copyWith => _$BoardStateCopyWithImpl<BoardState>(this as BoardState, _$identity);
+$BoardStateLoadedCopyWith<BoardStateLoaded> get copyWith => _$BoardStateLoadedCopyWithImpl<BoardStateLoaded>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardStateLoaded&&const DeepCollectionEquality().equals(other._columns, _columns)&&(identical(other.username, username) || other.username == username)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,error);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_columns),username,avatarUrl);
 
 @override
 String toString() {
-  return 'BoardState(isLoading: $isLoading, error: $error)';
+  return 'BoardState.loaded(columns: $columns, username: $username, avatarUrl: $avatarUrl)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $BoardStateCopyWith<$Res>  {
-  factory $BoardStateCopyWith(BoardState value, $Res Function(BoardState) _then) = _$BoardStateCopyWithImpl;
+abstract mixin class $BoardStateLoadedCopyWith<$Res> implements $BoardStateCopyWith<$Res> {
+  factory $BoardStateLoadedCopyWith(BoardStateLoaded value, $Res Function(BoardStateLoaded) _then) = _$BoardStateLoadedCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, String? error
+ List<BoardColumn> columns, String? username, String? avatarUrl
 });
 
 
@@ -53,68 +129,99 @@ $Res call({
 
 }
 /// @nodoc
-class _$BoardStateCopyWithImpl<$Res>
-    implements $BoardStateCopyWith<$Res> {
-  _$BoardStateCopyWithImpl(this._self, this._then);
+class _$BoardStateLoadedCopyWithImpl<$Res>
+    implements $BoardStateLoadedCopyWith<$Res> {
+  _$BoardStateLoadedCopyWithImpl(this._self, this._then);
 
-  final BoardState _self;
-  final $Res Function(BoardState) _then;
+  final BoardStateLoaded _self;
+  final $Res Function(BoardStateLoaded) _then;
 
 /// Create a copy of BoardState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? error = freezed,}) {
-  return _then(_self.copyWith(
-isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
+@pragma('vm:prefer-inline') $Res call({Object? columns = null,Object? username = freezed,Object? avatarUrl = freezed,}) {
+  return _then(BoardStateLoaded(
+columns: null == columns ? _self._columns : columns // ignore: cast_nullable_to_non_nullable
+as List<BoardColumn>,username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String?,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
 
+
 }
-
-
 
 /// @nodoc
 
 
-class _BoardState implements BoardState {
-  const _BoardState({this.isLoading = false, this.error});
+class BoardStateEmpty implements BoardState {
+  const BoardStateEmpty();
   
 
-@override@JsonKey() final  bool isLoading;
-@override final  String? error;
 
-/// Create a copy of BoardState
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$BoardStateCopyWith<_BoardState> get copyWith => __$BoardStateCopyWithImpl<_BoardState>(this, _$identity);
+
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BoardState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardStateEmpty);
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,error);
+int get hashCode => runtimeType.hashCode;
 
 @override
 String toString() {
-  return 'BoardState(isLoading: $isLoading, error: $error)';
+  return 'BoardState.empty()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
+class BoardStateError implements BoardState {
+  const BoardStateError({required this.message});
+  
+
+ final  String message;
+
+/// Create a copy of BoardState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$BoardStateErrorCopyWith<BoardStateError> get copyWith => _$BoardStateErrorCopyWithImpl<BoardStateError>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BoardStateError&&(identical(other.message, message) || other.message == message));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,message);
+
+@override
+String toString() {
+  return 'BoardState.error(message: $message)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$BoardStateCopyWith<$Res> implements $BoardStateCopyWith<$Res> {
-  factory _$BoardStateCopyWith(_BoardState value, $Res Function(_BoardState) _then) = __$BoardStateCopyWithImpl;
-@override @useResult
+abstract mixin class $BoardStateErrorCopyWith<$Res> implements $BoardStateCopyWith<$Res> {
+  factory $BoardStateErrorCopyWith(BoardStateError value, $Res Function(BoardStateError) _then) = _$BoardStateErrorCopyWithImpl;
+@useResult
 $Res call({
- bool isLoading, String? error
+ String message
 });
 
 
@@ -122,20 +229,19 @@ $Res call({
 
 }
 /// @nodoc
-class __$BoardStateCopyWithImpl<$Res>
-    implements _$BoardStateCopyWith<$Res> {
-  __$BoardStateCopyWithImpl(this._self, this._then);
+class _$BoardStateErrorCopyWithImpl<$Res>
+    implements $BoardStateErrorCopyWith<$Res> {
+  _$BoardStateErrorCopyWithImpl(this._self, this._then);
 
-  final _BoardState _self;
-  final $Res Function(_BoardState) _then;
+  final BoardStateError _self;
+  final $Res Function(BoardStateError) _then;
 
 /// Create a copy of BoardState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? error = freezed,}) {
-  return _then(_BoardState(
-isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
-as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
-as String?,
+@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
+  return _then(BoardStateError(
+message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
