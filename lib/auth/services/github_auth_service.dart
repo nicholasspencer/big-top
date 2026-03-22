@@ -33,6 +33,9 @@ class GitHubAuthService {
     defaultValue: 'http://localhost:8787',
   );
 
+  /// Request timeout for auth endpoints.
+  static const _requestTimeout = Duration(seconds: 15);
+
   final http.Client _client;
 
   GitHubAuthService({http.Client? client}) : _client = client ?? http.Client();
@@ -54,14 +57,21 @@ class GitHubAuthService {
 
   /// Step 1: Request a device code from GitHub.
   Future<DeviceCodeResponse> requestDeviceCode() async {
-    final response = await _client.post(
-      Uri.parse('$proxyUrl/github/device/code'),
-      headers: {'Accept': 'application/json'},
-      body: {
-        'client_id': clientId,
-        'scope': _scope,
-      },
-    );
+    final http.Response response;
+    try {
+      response = await _client.post(
+        Uri.parse('$proxyUrl/github/device/code'),
+        headers: {'Accept': 'application/json'},
+        body: {
+          'client_id': clientId,
+          'scope': _scope,
+        },
+      ).timeout(_requestTimeout);
+    } on TimeoutException {
+      throw Exception(
+        'Request timed out. The auth proxy may be unreachable.',
+      );
+    }
 
     if (response.statusCode != 200) {
       throw Exception('Failed to request device code: ${response.statusCode}');
@@ -88,15 +98,22 @@ class GitHubAuthService {
     while (DateTime.now().isBefore(deadline)) {
       await Future<void>.delayed(interval);
 
-      final response = await _client.post(
-        Uri.parse('$proxyUrl/github/oauth/token'),
-        headers: {'Accept': 'application/json'},
-        body: {
-          'client_id': clientId,
-          'device_code': deviceCode.deviceCode,
-          'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-        },
-      );
+      final http.Response response;
+      try {
+        response = await _client.post(
+          Uri.parse('$proxyUrl/github/oauth/token'),
+          headers: {'Accept': 'application/json'},
+          body: {
+            'client_id': clientId,
+            'device_code': deviceCode.deviceCode,
+            'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+          },
+        ).timeout(_requestTimeout);
+      } on TimeoutException {
+        continue; // retry on timeout during polling
+      } catch (_) {
+        continue; // retry on network errors during polling
+      }
 
       if (response.statusCode != 200) continue;
 
@@ -130,7 +147,7 @@ class GitHubAuthService {
         'Authorization': 'Bearer $token',
         'Accept': 'application/vnd.github+json',
       },
-    );
+    ).timeout(_requestTimeout);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;

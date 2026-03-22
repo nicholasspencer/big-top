@@ -47,6 +47,8 @@ const server = createServer(async (req, res) => {
     return res.end('ok');
   }
 
+  console.log(`${new Date().toISOString()} ${req.method} ${req.url} origin=${origin}`);
+
   const target = ROUTES[req.url];
   if (!target || req.method !== 'POST') {
     res.writeHead(404, cors);
