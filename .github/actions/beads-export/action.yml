@@ -14,7 +14,7 @@ runs:
   using: 'composite'
   steps:
     - name: Setup Beads
-      uses: ./big-top/.github/actions/setup-beads
+      uses: nicholasspencer/big-top/.github/actions/setup-beads@main
       id: setup
 
     - name: Discover databases

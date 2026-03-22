@@ -1,0 +1,43 @@
+# Example workflow for beads-tracking repos.
+# Deploys Big Top web app to GitHub Pages.
+#
+# Prerequisites:
+#   1. Enable GitHub Pages (Settings → Pages → Source: GitHub Actions)
+#   2. This workflow triggers on push to main or manually
+name: Deploy Big Top
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Big Top version (e.g., v0.1.0). Leave empty for latest.'
+        required: false
+
+permissions:
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy Big Top
+        uses: nicholasspencer/big-top/.github/actions/deploy-pages@main
+        with:
+          version: ${{ inputs.version || 'latest' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
