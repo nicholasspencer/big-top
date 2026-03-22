@@ -8,18 +8,15 @@ import 'package:big_top/project/interactors/project_interactor.dart';
 part 'board_viewmodel.freezed.dart';
 
 @freezed
-sealed class BoardState with _$BoardState {
-  const factory BoardState.loading() = BoardStateLoading;
-  const factory BoardState.loaded({
+sealed class BoardData with _$BoardData {
+  const factory BoardData({
     required List<BoardColumn> columns,
     String? username,
     String? avatarUrl,
-  }) = BoardStateLoaded;
-  const factory BoardState.empty() = BoardStateEmpty;
-  const factory BoardState.error({required String message}) = BoardStateError;
+  }) = _BoardData;
 }
 
-class BoardViewModel extends StateNotifier<BoardState> {
+class BoardViewModel extends StateNotifier<AsyncValue<BoardData>> {
   final ProjectInteractor _interactor;
   final BoardSelector _boardSelector;
   final String? _username;
@@ -35,30 +32,17 @@ class BoardViewModel extends StateNotifier<BoardState> {
         _boardSelector = boardSelector,
         _username = username,
         _avatarUrl = avatarUrl,
-        super(const BoardState.empty()) {
+        super(const AsyncValue.none()) {
     _mapSelectorState(_boardSelector.state);
     _removeListener = _boardSelector.addListener(_mapSelectorState);
   }
 
   void _mapSelectorState(AsyncValue<List<BoardColumn>> selectorState) {
-    if (selectorState.hasData) {
-      state = BoardState.loaded(
-        columns: selectorState.data!,
-        username: _username,
-        avatarUrl: _avatarUrl,
-      );
-      return;
-    }
-
-    if (selectorState.hasError) {
-      state = BoardState.error(message: selectorState.error.toString());
-      return;
-    }
-
-    state = switch (selectorState) {
-      AsyncValueWaiting() || AsyncValueActive() => const BoardState.loading(),
-      _ => const BoardState.empty(),
-    };
+    state = selectorState.map((columns) => BoardData(
+          columns: columns,
+          username: _username,
+          avatarUrl: _avatarUrl,
+        ));
   }
 
   Future<void> selectProject({

@@ -18,7 +18,7 @@ class BoardScreen extends StatelessWidget {
     final authValue = context.read<AsyncValue<AuthSession>>();
     final session = authValue.data;
 
-    return StateNotifierProvider<BoardViewModel, BoardState>(
+    return StateNotifierProvider<BoardViewModel, AsyncValue<BoardData>>(
       create: (ctx) => BoardViewModel(
         interactor: ctx.read<ProjectInteractor>(),
         boardSelector: ctx.read<BoardSelector>(),
@@ -36,7 +36,7 @@ class _BoardScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final boardState = context.watch<BoardState>();
+    final boardState = context.watch<AsyncValue<BoardData>>();
 
     return Scaffold(
       appBar: AppBar(
@@ -48,7 +48,7 @@ class _BoardScreenContent extends StatelessWidget {
           ],
         ),
         actions: [
-          if (boardState case BoardStateLoaded(:final username?, :final avatarUrl))
+          if (boardState.data case BoardData(:final username?, :final avatarUrl))
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Chip(
@@ -69,44 +69,59 @@ class _BoardScreenContent extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: switch (boardState) {
-          BoardStateEmpty() => const Center(
-              child: Text('Select a project to get started'),
-            ),
-          BoardStateLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-          BoardStateError(:final message) => Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(message),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<BoardViewModel>().refresh(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            ),
-          BoardStateLoaded(:final columns) => Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final column in columns)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: StatusColumn(
-                        title: column.label,
-                        status: column.status,
-                        issues: column.issues,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-        },
+        child: _buildBody(context, theme, boardState),
       ),
     );
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    ThemeData theme,
+    AsyncValue<BoardData> boardState,
+  ) {
+    if (boardState.hasData) {
+      final columns = boardState.data!.columns;
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final column in columns)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: StatusColumn(
+                  title: column.label,
+                  status: column.status,
+                  issues: column.issues,
+                ),
+              ),
+            ),
+        ],
+      );
+    }
+
+    if (boardState.hasError) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(boardState.error.toString()),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.read<BoardViewModel>().refresh(),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return switch (boardState) {
+      AsyncValueWaiting() || AsyncValueActive() => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      _ => const Center(
+          child: Text('Select a project to get started'),
+        ),
+    };
   }
 }
