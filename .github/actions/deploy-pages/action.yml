@@ -1,0 +1,45 @@
+name: 'Deploy Big Top to GitHub Pages'
+description: 'Download a Big Top release and deploy to GitHub Pages'
+
+inputs:
+  version:
+    description: 'Big Top release version (e.g., v0.1.0). Defaults to latest.'
+    required: false
+    default: 'latest'
+  github-token:
+    description: 'GitHub token with pages write permission'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Resolve version
+      shell: bash
+      id: version
+      run: |
+        if [ "${{ inputs.version }}" = "latest" ]; then
+          VERSION=$(curl -s https://api.github.com/repos/nicholasspencer/big-top/releases/latest | grep tag_name | cut -d'"' -f4)
+        else
+          VERSION="${{ inputs.version }}"
+        fi
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Deploying Big Top ${VERSION}"
+
+    - name: Download release tarball
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.version }}"
+        curl -L \
+          "https://github.com/nicholasspencer/big-top/releases/download/${VERSION}/big-top-web-${VERSION}.tar.gz" \
+          -o /tmp/big-top-web.tar.gz
+
+    - name: Extract to pages directory
+      shell: bash
+      run: |
+        mkdir -p _site
+        tar -xzf /tmp/big-top-web.tar.gz -C _site
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site

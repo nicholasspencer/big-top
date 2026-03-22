@@ -52,7 +52,7 @@ runs:
         echo "Project: ${{ inputs.project }}"
 
     - name: Setup Beads
-      uses: ./big-top/.github/actions/setup-beads
+      uses: nicholasspencer/big-top/.github/actions/setup-beads@main
       id: setup
 
     - name: Execute write operation

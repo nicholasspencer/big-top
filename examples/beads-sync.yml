@@ -1,0 +1,22 @@
+# Example workflow for beads-tracking repos.
+# Exports beads data to JSONL on a schedule or manual trigger.
+name: Beads Sync
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # every 6 hours
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Export beads to JSONL
+        uses: nicholasspencer/big-top/.github/actions/beads-export@main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
