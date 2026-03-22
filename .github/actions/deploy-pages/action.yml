@@ -6,6 +6,10 @@ inputs:
     description: 'Big Top release version (e.g., v0.1.0). Defaults to latest.'
     required: false
     default: 'latest'
+  base-href:
+    description: 'Base href for the Flutter app (e.g., /my-repo/). Defaults to /.'
+    required: false
+    default: '/'
   github-token:
     description: 'GitHub token with pages write permission'
     required: true
@@ -38,6 +42,15 @@ runs:
       run: |
         mkdir -p _site
         tar -xzf /tmp/big-top-web.tar.gz -C _site
+
+    - name: Patch base href
+      shell: bash
+      run: |
+        BASE_HREF="${{ inputs.base-href }}"
+        if [ "$BASE_HREF" != "/" ]; then
+          sed -i 's|<base href="/">|<base href="'"$BASE_HREF"'">|' _site/index.html
+          echo "Patched base href to $BASE_HREF"
+        fi
 
     - name: Upload Pages artifact
       uses: actions/upload-pages-artifact@v3
