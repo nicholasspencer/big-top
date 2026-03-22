@@ -42,6 +42,11 @@ jobs:
           fi
           flutter build web --release --base-href "${{ env.BASE_HREF }}" $DEFINE_ARGS
 
+      - name: Strip source map references
+        run: |
+          # Remove sourceMappingURL comments — maps aren't shipped in release
+          find build/web -name '*.js' -exec sed -i 's|//# sourceMappingURL=.*||g' {} +
+
       # Package build/web into a release tarball
       - name: Package tarball
         run: |
