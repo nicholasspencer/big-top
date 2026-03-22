@@ -6,8 +6,9 @@ import 'package:provider/single_child_widget.dart';
 import '../core/async_value.dart';
 import '../auth/models/auth_session.dart';
 import '../project/models/project_data.dart';
-import '../project/repositories/issues_repository.dart';
-import '../project/repositories/project_repository.dart';
+import '../project/repositories/project_data_repository.dart';
+import '../board/interactors/board_selector.dart';
+import '../project/interactors/project_interactor.dart';
 import '../project/services/github_api_service.dart';
 
 class AuthorizedDependencies extends SingleChildStatelessWidget {
@@ -21,14 +22,21 @@ class AuthorizedDependencies extends SingleChildStatelessWidget {
 
     return MultiProvider(
       providers: [
-        StateNotifierProvider<IssuesRepository, AsyncValue<ProjectData>>(
-          create: (ctx) => IssuesRepository(
+        StateNotifierProvider<ProjectDataRepository, AsyncValue<ProjectData>>(
+          create: (ctx) => ProjectDataRepository(
             apiService: ctx.read<GitHubApiService>(),
             token: authValue.requireData().token,
           ),
         ),
-        StateNotifierProvider<ProjectRepository, ProjectState>(
-          create: (_) => ProjectRepository(),
+        StateNotifierProvider<ProjectInteractor, ProjectInteractorState>(
+          create: (ctx) => ProjectInteractor(
+            dataRepo: ctx.read<ProjectDataRepository>(),
+          ),
+        ),
+        StateNotifierProvider<BoardSelector, AsyncValue<List<BoardColumn>>>(
+          create: (ctx) => BoardSelector(
+            dataRepo: ctx.read<ProjectDataRepository>(),
+          ),
         ),
       ],
       child: child!,

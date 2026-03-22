@@ -5,12 +5,12 @@ import 'package:big_top/core/async_value.dart';
 import '../models/project_data.dart';
 import '../services/github_api_service.dart';
 
-class IssuesRepository extends StateNotifier<AsyncValue<ProjectData>> {
+class ProjectDataRepository extends StateNotifier<AsyncValue<ProjectData>> {
   final GitHubApiService _apiService;
   final String _token;
   final int _maxRetries;
 
-  IssuesRepository({
+  ProjectDataRepository({
     required GitHubApiService apiService,
     required String token,
     int maxRetries = 3,

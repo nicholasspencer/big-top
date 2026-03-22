@@ -1,53 +1,69 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/project/repositories/issues_repository.dart';
-import 'package:big_top/project/repositories/project_repository.dart';
+import 'package:big_top/board/interactors/board_selector.dart';
+import 'package:big_top/core/async_value.dart';
+import 'package:big_top/project/interactors/project_interactor.dart';
 
 part 'board_viewmodel.freezed.dart';
 
 @freezed
-sealed class BoardState with _$BoardState {
-  const factory BoardState({
-    @Default(false) bool isLoading,
-    String? error,
-  }) = _BoardState;
+sealed class BoardData with _$BoardData {
+  const factory BoardData({
+    required List<BoardColumn> columns,
+    String? username,
+    String? avatarUrl,
+  }) = _BoardData;
 }
 
-class BoardViewModel extends StateNotifier<BoardState> {
-  final IssuesRepository _issuesRepo;
-  final ProjectRepository _projectRepo;
+class BoardViewModel extends StateNotifier<AsyncValue<BoardData>> {
+  final ProjectInteractor _interactor;
+  final BoardSelector _boardSelector;
+  final String? _username;
+  final String? _avatarUrl;
+  late final void Function() _removeListener;
 
   BoardViewModel({
-    required IssuesRepository issuesRepo,
-    required ProjectRepository projectRepo,
-  })  : _issuesRepo = issuesRepo,
-        _projectRepo = projectRepo,
-        super(const BoardState());
+    required ProjectInteractor interactor,
+    required BoardSelector boardSelector,
+    String? username,
+    String? avatarUrl,
+  })  : _interactor = interactor,
+        _boardSelector = boardSelector,
+        _username = username,
+        _avatarUrl = avatarUrl,
+        super(const AsyncValue.none()) {
+    _mapSelectorState(_boardSelector.state);
+    _removeListener = _boardSelector.addListener(_mapSelectorState);
+  }
+
+  void _mapSelectorState(AsyncValue<List<BoardColumn>> selectorState) {
+    state = selectorState.map((columns) => BoardData(
+          columns: columns,
+          username: _username,
+          avatarUrl: _avatarUrl,
+        ));
+  }
 
   Future<void> selectProject({
     required String owner,
     required String repo,
     String? project,
   }) async {
-    _projectRepo.selectProject(owner: owner, repo: repo, project: project);
-    await refresh();
+    await _interactor.selectProject(
+      owner: owner,
+      repo: repo,
+      project: project,
+    );
   }
 
   Future<void> refresh() async {
-    final projectState = _projectRepo.state;
-    if (!projectState.isSelected) return;
+    await _interactor.refresh();
+  }
 
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      await _issuesRepo.loadProject(
-        owner: projectState.owner!,
-        repo: projectState.repo!,
-        project: projectState.project ?? projectState.repo!,
-      );
-      state = state.copyWith(isLoading: false);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
-    }
+  @override
+  void dispose() {
+    _removeListener();
+    super.dispose();
   }
 }
