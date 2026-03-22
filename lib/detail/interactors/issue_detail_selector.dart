@@ -12,22 +12,22 @@ import 'package:big_top/project/repositories/project_data_repository.dart';
 part 'issue_detail_selector.freezed.dart';
 
 @freezed
-sealed class IssueDetailState with _$IssueDetailState {
-  const factory IssueDetailState.empty() = IssueDetailEmpty;
-  const factory IssueDetailState.loading() = IssueDetailLoading;
-  const factory IssueDetailState.loaded({
+sealed class IssueDetail with _$IssueDetail {
+  const factory IssueDetail({
     required Issue issue,
-    required List<Comment> comments,
-    required List<Label> labels,
-    required List<Dependency> dependencies,
-  }) = IssueDetailLoaded;
-  const factory IssueDetailState.notFound() = IssueDetailNotFound;
-  const factory IssueDetailState.error({
-    required String message,
-  }) = IssueDetailError;
+    @Default([]) List<Comment> comments,
+    @Default([]) List<Label> labels,
+    @Default([]) List<Dependency> dependencies,
+  }) = _IssueDetail;
 }
 
-class IssueDetailSelector extends StateNotifier<IssueDetailState> {
+/// Derives detail for a single issue from the project data repository.
+///
+/// State is `AsyncValue<IssueDetail>` — mirrors the repo's async state,
+/// mapping the inner [ProjectData] to an [IssueDetail] for [_issueId].
+/// When the repo has data but the issue isn't found, emits
+/// `AsyncValue.done()` with null data.
+class IssueDetailSelector extends StateNotifier<AsyncValue<IssueDetail>> {
   final ProjectDataRepository _dataRepo;
   final String _issueId;
   late final void Function() _removeListener;
@@ -37,7 +37,7 @@ class IssueDetailSelector extends StateNotifier<IssueDetailState> {
     required String issueId,
   })  : _dataRepo = dataRepo,
         _issueId = issueId,
-        super(const IssueDetailState.empty()) {
+        super(const AsyncValue.none()) {
     _recompute(_dataRepo.state);
     _removeListener = _dataRepo.addListener(_recompute);
   }
@@ -47,33 +47,25 @@ class IssueDetailSelector extends StateNotifier<IssueDetailState> {
       final data = asyncValue.data!;
       final issue = data.issues.where((i) => i.id == _issueId).firstOrNull;
       if (issue == null) {
-        state = const IssueDetailState.notFound();
+        // Data loaded but issue not found — done with null data.
+        state = const AsyncValue.done();
         return;
       }
-      state = IssueDetailState.loaded(
-        issue: issue,
-        comments: data.comments.where((c) => c.issueId == _issueId).toList(),
-        labels: data.labels.where((l) => l.issueId == _issueId).toList(),
-        dependencies: data.dependencies
-            .where((d) => d.issueId == _issueId || d.dependsOnId == _issueId)
-            .toList(),
-      );
+      state = asyncValue.map((_) => IssueDetail(
+            issue: issue,
+            comments:
+                data.comments.where((c) => c.issueId == _issueId).toList(),
+            labels: data.labels.where((l) => l.issueId == _issueId).toList(),
+            dependencies: data.dependencies
+                .where(
+                    (d) => d.issueId == _issueId || d.dependsOnId == _issueId)
+                .toList(),
+          ));
       return;
     }
 
-    if (asyncValue.hasError) {
-      state = IssueDetailState.error(
-        message: asyncValue.error.toString(),
-      );
-      return;
-    }
-
-    state = switch (asyncValue) {
-      AsyncValueNone() => const IssueDetailState.empty(),
-      AsyncValueWaiting() || AsyncValueActive() =>
-        const IssueDetailState.loading(),
-      AsyncValueDone() => const IssueDetailState.empty(),
-    };
+    // No data — propagate the async state as-is (none/waiting/active/done/error).
+    state = asyncValue.map((_) => throw StateError('unreachable'));
   }
 
   @override

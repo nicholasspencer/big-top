@@ -33,7 +33,7 @@ class AuthorizedDependencies extends SingleChildStatelessWidget {
             dataRepo: ctx.read<ProjectDataRepository>(),
           ),
         ),
-        StateNotifierProvider<BoardSelector, BoardSelectorState>(
+        StateNotifierProvider<BoardSelector, AsyncValue<List<BoardColumn>>>(
           create: (ctx) => BoardSelector(
             dataRepo: ctx.read<ProjectDataRepository>(),
           ),

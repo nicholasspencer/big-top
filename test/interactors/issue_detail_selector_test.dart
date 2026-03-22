@@ -1,3 +1,4 @@
+import 'package:big_top/core/async_value.dart';
 import 'package:big_top/detail/interactors/issue_detail_selector.dart';
 import 'package:big_top/project/repositories/project_data_repository.dart';
 import 'package:big_top/project/services/github_api_service.dart';
@@ -14,7 +15,7 @@ const _project = 'my-project';
 
 void main() {
   group('IssueDetailSelector', () {
-    test('empty state when repo has no data', () {
+    test('none state when repo has no data', () {
       final service = GitHubApiService(client: successClient());
       final repo = ProjectDataRepository(
         apiService: service,
@@ -25,7 +26,8 @@ void main() {
         issueId: 'issue-001',
       );
 
-      expect(selector.state, isA<IssueDetailEmpty>());
+      expect(selector.state, isA<AsyncValueNone>());
+      expect(selector.state.hasData, isFalse);
 
       selector.dispose();
       repo.dispose();
@@ -49,21 +51,21 @@ void main() {
         project: _project,
       );
 
-      expect(selector.state, isA<IssueDetailLoaded>());
-      final loaded = selector.state as IssueDetailLoaded;
-      expect(loaded.issue.id, 'issue-001');
-      expect(loaded.comments, hasLength(1));
-      expect(loaded.comments.first.issueId, 'issue-001');
-      expect(loaded.labels, hasLength(1));
-      expect(loaded.labels.first.label, 'bug');
-      expect(loaded.dependencies, hasLength(1));
-      expect(loaded.dependencies.first.dependsOnId, 'issue-001');
+      expect(selector.state.hasData, isTrue);
+      final detail = selector.state.data!;
+      expect(detail.issue.id, 'issue-001');
+      expect(detail.comments, hasLength(1));
+      expect(detail.comments.first.issueId, 'issue-001');
+      expect(detail.labels, hasLength(1));
+      expect(detail.labels.first.label, 'bug');
+      expect(detail.dependencies, hasLength(1));
+      expect(detail.dependencies.first.dependsOnId, 'issue-001');
 
       selector.dispose();
       repo.dispose();
     });
 
-    test('notFound state when issue ID does not match', () async {
+    test('done with null data when issue ID does not match', () async {
       final service = GitHubApiService(client: successClient());
       final repo = ProjectDataRepository(
         apiService: service,
@@ -81,7 +83,8 @@ void main() {
         project: _project,
       );
 
-      expect(selector.state, isA<IssueDetailNotFound>());
+      expect(selector.state, isA<AsyncValueDone>());
+      expect(selector.state.hasData, isFalse);
 
       selector.dispose();
       repo.dispose();
@@ -106,7 +109,7 @@ void main() {
         project: _project,
       );
 
-      expect(selector.state, isA<IssueDetailError>());
+      expect(selector.state.hasError, isTrue);
 
       selector.dispose();
       repo.dispose();

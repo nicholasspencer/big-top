@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
 import 'package:big_top/board/interactors/board_selector.dart';
+import 'package:big_top/core/async_value.dart';
 import 'package:big_top/project/interactors/project_interactor.dart';
 
 part 'board_viewmodel.freezed.dart';
@@ -39,16 +40,24 @@ class BoardViewModel extends StateNotifier<BoardState> {
     _removeListener = _boardSelector.addListener(_mapSelectorState);
   }
 
-  void _mapSelectorState(BoardSelectorState selectorState) {
+  void _mapSelectorState(AsyncValue<List<BoardColumn>> selectorState) {
+    if (selectorState.hasData) {
+      state = BoardState.loaded(
+        columns: selectorState.data!,
+        username: _username,
+        avatarUrl: _avatarUrl,
+      );
+      return;
+    }
+
+    if (selectorState.hasError) {
+      state = BoardState.error(message: selectorState.error.toString());
+      return;
+    }
+
     state = switch (selectorState) {
-      BoardSelectorEmpty() => const BoardState.empty(),
-      BoardSelectorLoading() => const BoardState.loading(),
-      BoardSelectorLoaded(:final columns) => BoardState.loaded(
-          columns: columns,
-          username: _username,
-          avatarUrl: _avatarUrl,
-        ),
-      BoardSelectorError(:final message) => BoardState.error(message: message),
+      AsyncValueWaiting() || AsyncValueActive() => const BoardState.loading(),
+      _ => const BoardState.empty(),
     };
   }
 

@@ -17,18 +17,6 @@ sealed class BoardColumn with _$BoardColumn {
   }) = _BoardColumn;
 }
 
-@freezed
-sealed class BoardSelectorState with _$BoardSelectorState {
-  const factory BoardSelectorState.empty() = BoardSelectorEmpty;
-  const factory BoardSelectorState.loading() = BoardSelectorLoading;
-  const factory BoardSelectorState.loaded({
-    required List<BoardColumn> columns,
-  }) = BoardSelectorLoaded;
-  const factory BoardSelectorState.error({
-    required String message,
-  }) = BoardSelectorError;
-}
-
 const _columnDefs = [
   ('open', 'Open'),
   ('in_progress', 'In Progress'),
@@ -36,36 +24,19 @@ const _columnDefs = [
   ('closed', 'Closed'),
 ];
 
-class BoardSelector extends StateNotifier<BoardSelectorState> {
+class BoardSelector extends StateNotifier<AsyncValue<List<BoardColumn>>> {
   final ProjectDataRepository _dataRepo;
   late final void Function() _removeListener;
 
   BoardSelector({required ProjectDataRepository dataRepo})
       : _dataRepo = dataRepo,
-        super(const BoardSelectorState.empty()) {
+        super(const AsyncValue.none()) {
     _recompute(_dataRepo.state);
     _removeListener = _dataRepo.addListener(_recompute);
   }
 
   void _recompute(AsyncValue<ProjectData> asyncValue) {
-    if (asyncValue.hasData) {
-      final data = asyncValue.data!;
-      state = BoardSelectorState.loaded(columns: _buildColumns(data.issues));
-      return;
-    }
-
-    if (asyncValue.hasError) {
-      state = BoardSelectorState.error(
-        message: asyncValue.error.toString(),
-      );
-      return;
-    }
-
-    state = switch (asyncValue) {
-      AsyncValueNone() => const BoardSelectorState.empty(),
-      AsyncValueWaiting() || AsyncValueActive() => const BoardSelectorState.loading(),
-      AsyncValueDone() => const BoardSelectorState.empty(),
-    };
+    state = asyncValue.map((data) => _buildColumns(data.issues));
   }
 
   static List<BoardColumn> _buildColumns(List<Issue> issues) {

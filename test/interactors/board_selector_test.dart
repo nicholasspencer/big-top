@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:big_top/board/interactors/board_selector.dart';
+import 'package:big_top/core/async_value.dart';
 
 import 'package:big_top/project/repositories/project_data_repository.dart';
 import 'package:big_top/project/services/github_api_service.dart';
@@ -75,7 +76,7 @@ MockClient _multiIssueClient() {
 
 void main() {
   group('BoardSelector', () {
-    test('empty state when repo has no data', () {
+    test('none state when repo has no data', () {
       final service = GitHubApiService(client: _multiIssueClient());
       final repo = ProjectDataRepository(
         apiService: service,
@@ -83,7 +84,8 @@ void main() {
       );
       final selector = BoardSelector(dataRepo: repo);
 
-      expect(selector.state, isA<BoardSelectorEmpty>());
+      expect(selector.state, isA<AsyncValueNone>());
+      expect(selector.state.hasData, isFalse);
 
       selector.dispose();
       repo.dispose();
@@ -104,18 +106,18 @@ void main() {
         project: _project,
       );
 
-      expect(selector.state, isA<BoardSelectorLoaded>());
-      final loaded = selector.state as BoardSelectorLoaded;
-      expect(loaded.columns, hasLength(4));
-      expect(loaded.columns.map((c) => c.status).toList(),
+      expect(selector.state.hasData, isTrue);
+      final columns = selector.state.data!;
+      expect(columns, hasLength(4));
+      expect(columns.map((c) => c.status).toList(),
           ['open', 'in_progress', 'blocked', 'closed']);
-      expect(loaded.columns.map((c) => c.label).toList(),
+      expect(columns.map((c) => c.label).toList(),
           ['Open', 'In Progress', 'Blocked', 'Closed']);
       // Check issue counts per column.
-      expect(loaded.columns[0].issues, hasLength(2)); // open
-      expect(loaded.columns[1].issues, hasLength(1)); // in_progress
-      expect(loaded.columns[2].issues, hasLength(1)); // blocked
-      expect(loaded.columns[3].issues, hasLength(1)); // closed
+      expect(columns[0].issues, hasLength(2)); // open
+      expect(columns[1].issues, hasLength(1)); // in_progress
+      expect(columns[2].issues, hasLength(1)); // blocked
+      expect(columns[3].issues, hasLength(1)); // closed
 
       selector.dispose();
       repo.dispose();
@@ -136,8 +138,8 @@ void main() {
         project: _project,
       );
 
-      final loaded = selector.state as BoardSelectorLoaded;
-      final openIssues = loaded.columns[0].issues;
+      final columns = selector.state.data!;
+      final openIssues = columns[0].issues;
       // priority 1 before priority 3
       expect(openIssues[0].id, 'i-2');
       expect(openIssues[1].id, 'i-1');
@@ -162,7 +164,7 @@ void main() {
         project: _project,
       );
 
-      expect(selector.state, isA<BoardSelectorError>());
+      expect(selector.state.hasError, isTrue);
 
       selector.dispose();
       repo.dispose();

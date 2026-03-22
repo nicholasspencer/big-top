@@ -12,158 +12,37 @@ part of 'issue_detail_selector.dart';
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
-mixin _$IssueDetailState {
+mixin _$IssueDetail {
 
-
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IssueDetailState);
-}
-
-
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-  return 'IssueDetailState()';
-}
-
-
-}
-
-/// @nodoc
-class $IssueDetailStateCopyWith<$Res>  {
-$IssueDetailStateCopyWith(IssueDetailState _, $Res Function(IssueDetailState) __);
-}
-
-
-
-/// @nodoc
-
-
-class IssueDetailEmpty implements IssueDetailState {
-  const IssueDetailEmpty();
-  
-
-
-
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IssueDetailEmpty);
-}
-
-
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-  return 'IssueDetailState.empty()';
-}
-
-
-}
-
-
-
-
-/// @nodoc
-
-
-class IssueDetailLoading implements IssueDetailState {
-  const IssueDetailLoading();
-  
-
-
-
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IssueDetailLoading);
-}
-
-
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-  return 'IssueDetailState.loading()';
-}
-
-
-}
-
-
-
-
-/// @nodoc
-
-
-class IssueDetailLoaded implements IssueDetailState {
-  const IssueDetailLoaded({required this.issue, required final  List<Comment> comments, required final  List<Label> labels, required final  List<Dependency> dependencies}): _comments = comments,_labels = labels,_dependencies = dependencies;
-  
-
- final  Issue issue;
- final  List<Comment> _comments;
- List<Comment> get comments {
-  if (_comments is EqualUnmodifiableListView) return _comments;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_comments);
-}
-
- final  List<Label> _labels;
- List<Label> get labels {
-  if (_labels is EqualUnmodifiableListView) return _labels;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_labels);
-}
-
- final  List<Dependency> _dependencies;
- List<Dependency> get dependencies {
-  if (_dependencies is EqualUnmodifiableListView) return _dependencies;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_dependencies);
-}
-
-
-/// Create a copy of IssueDetailState
+ Issue get issue; List<Comment> get comments; List<Label> get labels; List<Dependency> get dependencies;
+/// Create a copy of IssueDetail
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$IssueDetailLoadedCopyWith<IssueDetailLoaded> get copyWith => _$IssueDetailLoadedCopyWithImpl<IssueDetailLoaded>(this, _$identity);
+$IssueDetailCopyWith<IssueDetail> get copyWith => _$IssueDetailCopyWithImpl<IssueDetail>(this as IssueDetail, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IssueDetailLoaded&&(identical(other.issue, issue) || other.issue == issue)&&const DeepCollectionEquality().equals(other._comments, _comments)&&const DeepCollectionEquality().equals(other._labels, _labels)&&const DeepCollectionEquality().equals(other._dependencies, _dependencies));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is IssueDetail&&(identical(other.issue, issue) || other.issue == issue)&&const DeepCollectionEquality().equals(other.comments, comments)&&const DeepCollectionEquality().equals(other.labels, labels)&&const DeepCollectionEquality().equals(other.dependencies, dependencies));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,issue,const DeepCollectionEquality().hash(_comments),const DeepCollectionEquality().hash(_labels),const DeepCollectionEquality().hash(_dependencies));
+int get hashCode => Object.hash(runtimeType,issue,const DeepCollectionEquality().hash(comments),const DeepCollectionEquality().hash(labels),const DeepCollectionEquality().hash(dependencies));
 
 @override
 String toString() {
-  return 'IssueDetailState.loaded(issue: $issue, comments: $comments, labels: $labels, dependencies: $dependencies)';
+  return 'IssueDetail(issue: $issue, comments: $comments, labels: $labels, dependencies: $dependencies)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $IssueDetailLoadedCopyWith<$Res> implements $IssueDetailStateCopyWith<$Res> {
-  factory $IssueDetailLoadedCopyWith(IssueDetailLoaded value, $Res Function(IssueDetailLoaded) _then) = _$IssueDetailLoadedCopyWithImpl;
+abstract mixin class $IssueDetailCopyWith<$Res>  {
+  factory $IssueDetailCopyWith(IssueDetail value, $Res Function(IssueDetail) _then) = _$IssueDetailCopyWithImpl;
 @useResult
 $Res call({
  Issue issue, List<Comment> comments, List<Label> labels, List<Dependency> dependencies
@@ -174,26 +53,25 @@ $IssueCopyWith<$Res> get issue;
 
 }
 /// @nodoc
-class _$IssueDetailLoadedCopyWithImpl<$Res>
-    implements $IssueDetailLoadedCopyWith<$Res> {
-  _$IssueDetailLoadedCopyWithImpl(this._self, this._then);
+class _$IssueDetailCopyWithImpl<$Res>
+    implements $IssueDetailCopyWith<$Res> {
+  _$IssueDetailCopyWithImpl(this._self, this._then);
 
-  final IssueDetailLoaded _self;
-  final $Res Function(IssueDetailLoaded) _then;
+  final IssueDetail _self;
+  final $Res Function(IssueDetail) _then;
 
-/// Create a copy of IssueDetailState
+/// Create a copy of IssueDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? issue = null,Object? comments = null,Object? labels = null,Object? dependencies = null,}) {
-  return _then(IssueDetailLoaded(
+@pragma('vm:prefer-inline') @override $Res call({Object? issue = null,Object? comments = null,Object? labels = null,Object? dependencies = null,}) {
+  return _then(_self.copyWith(
 issue: null == issue ? _self.issue : issue // ignore: cast_nullable_to_non_nullable
-as Issue,comments: null == comments ? _self._comments : comments // ignore: cast_nullable_to_non_nullable
-as List<Comment>,labels: null == labels ? _self._labels : labels // ignore: cast_nullable_to_non_nullable
-as List<Label>,dependencies: null == dependencies ? _self._dependencies : dependencies // ignore: cast_nullable_to_non_nullable
+as Issue,comments: null == comments ? _self.comments : comments // ignore: cast_nullable_to_non_nullable
+as List<Comment>,labels: null == labels ? _self.labels : labels // ignore: cast_nullable_to_non_nullable
+as List<Label>,dependencies: null == dependencies ? _self.dependencies : dependencies // ignore: cast_nullable_to_non_nullable
 as List<Dependency>,
   ));
 }
-
-/// Create a copy of IssueDetailState
+/// Create a copy of IssueDetail
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
@@ -205,102 +83,105 @@ $IssueCopyWith<$Res> get issue {
 }
 }
 
-/// @nodoc
-
-
-class IssueDetailNotFound implements IssueDetailState {
-  const IssueDetailNotFound();
-  
-
-
-
-
-
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IssueDetailNotFound);
-}
-
-
-@override
-int get hashCode => runtimeType.hashCode;
-
-@override
-String toString() {
-  return 'IssueDetailState.notFound()';
-}
-
-
-}
-
-
 
 
 /// @nodoc
 
 
-class IssueDetailError implements IssueDetailState {
-  const IssueDetailError({required this.message});
+class _IssueDetail implements IssueDetail {
+  const _IssueDetail({required this.issue, final  List<Comment> comments = const [], final  List<Label> labels = const [], final  List<Dependency> dependencies = const []}): _comments = comments,_labels = labels,_dependencies = dependencies;
   
 
- final  String message;
+@override final  Issue issue;
+ final  List<Comment> _comments;
+@override@JsonKey() List<Comment> get comments {
+  if (_comments is EqualUnmodifiableListView) return _comments;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_comments);
+}
 
-/// Create a copy of IssueDetailState
+ final  List<Label> _labels;
+@override@JsonKey() List<Label> get labels {
+  if (_labels is EqualUnmodifiableListView) return _labels;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_labels);
+}
+
+ final  List<Dependency> _dependencies;
+@override@JsonKey() List<Dependency> get dependencies {
+  if (_dependencies is EqualUnmodifiableListView) return _dependencies;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_dependencies);
+}
+
+
+/// Create a copy of IssueDetail
 /// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
+@override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$IssueDetailErrorCopyWith<IssueDetailError> get copyWith => _$IssueDetailErrorCopyWithImpl<IssueDetailError>(this, _$identity);
+_$IssueDetailCopyWith<_IssueDetail> get copyWith => __$IssueDetailCopyWithImpl<_IssueDetail>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is IssueDetailError&&(identical(other.message, message) || other.message == message));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _IssueDetail&&(identical(other.issue, issue) || other.issue == issue)&&const DeepCollectionEquality().equals(other._comments, _comments)&&const DeepCollectionEquality().equals(other._labels, _labels)&&const DeepCollectionEquality().equals(other._dependencies, _dependencies));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode => Object.hash(runtimeType,issue,const DeepCollectionEquality().hash(_comments),const DeepCollectionEquality().hash(_labels),const DeepCollectionEquality().hash(_dependencies));
 
 @override
 String toString() {
-  return 'IssueDetailState.error(message: $message)';
+  return 'IssueDetail(issue: $issue, comments: $comments, labels: $labels, dependencies: $dependencies)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $IssueDetailErrorCopyWith<$Res> implements $IssueDetailStateCopyWith<$Res> {
-  factory $IssueDetailErrorCopyWith(IssueDetailError value, $Res Function(IssueDetailError) _then) = _$IssueDetailErrorCopyWithImpl;
-@useResult
+abstract mixin class _$IssueDetailCopyWith<$Res> implements $IssueDetailCopyWith<$Res> {
+  factory _$IssueDetailCopyWith(_IssueDetail value, $Res Function(_IssueDetail) _then) = __$IssueDetailCopyWithImpl;
+@override @useResult
 $Res call({
- String message
+ Issue issue, List<Comment> comments, List<Label> labels, List<Dependency> dependencies
 });
 
 
-
+@override $IssueCopyWith<$Res> get issue;
 
 }
 /// @nodoc
-class _$IssueDetailErrorCopyWithImpl<$Res>
-    implements $IssueDetailErrorCopyWith<$Res> {
-  _$IssueDetailErrorCopyWithImpl(this._self, this._then);
+class __$IssueDetailCopyWithImpl<$Res>
+    implements _$IssueDetailCopyWith<$Res> {
+  __$IssueDetailCopyWithImpl(this._self, this._then);
 
-  final IssueDetailError _self;
-  final $Res Function(IssueDetailError) _then;
+  final _IssueDetail _self;
+  final $Res Function(_IssueDetail) _then;
 
-/// Create a copy of IssueDetailState
+/// Create a copy of IssueDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? message = null,}) {
-  return _then(IssueDetailError(
-message: null == message ? _self.message : message // ignore: cast_nullable_to_non_nullable
-as String,
+@override @pragma('vm:prefer-inline') $Res call({Object? issue = null,Object? comments = null,Object? labels = null,Object? dependencies = null,}) {
+  return _then(_IssueDetail(
+issue: null == issue ? _self.issue : issue // ignore: cast_nullable_to_non_nullable
+as Issue,comments: null == comments ? _self._comments : comments // ignore: cast_nullable_to_non_nullable
+as List<Comment>,labels: null == labels ? _self._labels : labels // ignore: cast_nullable_to_non_nullable
+as List<Label>,dependencies: null == dependencies ? _self._dependencies : dependencies // ignore: cast_nullable_to_non_nullable
+as List<Dependency>,
   ));
 }
 
-
+/// Create a copy of IssueDetail
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$IssueCopyWith<$Res> get issue {
+  
+  return $IssueCopyWith<$Res>(_self.issue, (value) {
+    return _then(_self.copyWith(issue: value));
+  });
+}
 }
 
 // dart format on
