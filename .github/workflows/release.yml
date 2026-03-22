@@ -10,7 +10,7 @@ on:
 # BASE_HREF and PROXY_URL can be overridden per-repo
 env:
   BASE_HREF: /
-  PROXY_URL: ''
+  PROXY_URL: 'https://auth.nefarious.actor'
 
 permissions:
   contents: write
