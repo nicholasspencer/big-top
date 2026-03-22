@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../core/async_value.dart';
-import '../auth/models/auth_session.dart';
+import '../auth/repositories/auth_repository.dart';
 import '../board/screens/board_screen.dart';
 import '../detail/screens/detail_screen.dart';
 import '../auth/screens/login_screen.dart';
 
 GoRouter createRouter(BuildContext context) {
+  final authRepo = context.read<AuthRepository>();
+
   return GoRouter(
     initialLocation: '/',
+    refreshListenable: _AuthNotifier(authRepo),
     redirect: (BuildContext context, GoRouterState state) {
-      final authValue = context.read<AsyncValue<AuthSession>>();
-      final authed = authValue.hasData;
+      final authed = authRepo.isAuthenticated;
       final isLoggingIn = state.matchedLocation == '/login';
 
       if (!authed && !isLoggingIn) return '/login';
@@ -38,4 +39,29 @@ GoRouter createRouter(BuildContext context) {
       ),
     ],
   );
+}
+
+/// Bridges [AuthRepository] state changes to [GoRouter.refreshListenable].
+/// Only notifies when authentication status actually changes (authed ↔ not authed),
+/// NOT on intermediate state transitions (none → waiting → active).
+class _AuthNotifier extends ChangeNotifier {
+  bool _wasAuthenticated = false;
+  Function()? _removeListener;
+
+  _AuthNotifier(AuthRepository authRepo) {
+    _wasAuthenticated = authRepo.isAuthenticated;
+    _removeListener = authRepo.addListener((state) {
+      final isAuthed = state.hasData;
+      if (isAuthed != _wasAuthenticated) {
+        _wasAuthenticated = isAuthed;
+        notifyListeners();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _removeListener?.call();
+    super.dispose();
+  }
 }
