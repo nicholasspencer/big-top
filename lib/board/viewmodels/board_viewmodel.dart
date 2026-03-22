@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/project/repositories/issues_repository.dart';
+import 'package:big_top/project/repositories/project_data_repository.dart';
 import 'package:big_top/project/repositories/project_repository.dart';
 
 part 'board_viewmodel.freezed.dart';
@@ -15,11 +15,11 @@ sealed class BoardState with _$BoardState {
 }
 
 class BoardViewModel extends StateNotifier<BoardState> {
-  final IssuesRepository _issuesRepo;
+  final ProjectDataRepository _issuesRepo;
   final ProjectRepository _projectRepo;
 
   BoardViewModel({
-    required IssuesRepository issuesRepo,
+    required ProjectDataRepository issuesRepo,
     required ProjectRepository projectRepo,
   })  : _issuesRepo = issuesRepo,
         _projectRepo = projectRepo,

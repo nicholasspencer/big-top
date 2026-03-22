@@ -7,7 +7,7 @@ import 'package:big_top/project/models/dependency.dart';
 import 'package:big_top/project/models/issue.dart';
 import 'package:big_top/project/models/label.dart';
 import 'package:big_top/project/models/project_data.dart';
-import 'package:big_top/project/repositories/issues_repository.dart';
+import 'package:big_top/project/repositories/project_data_repository.dart';
 
 part 'detail_viewmodel.freezed.dart';
 
@@ -22,12 +22,12 @@ sealed class DetailState with _$DetailState {
 }
 
 class DetailViewModel extends StateNotifier<DetailState> {
-  final IssuesRepository _issuesRepo;
+  final ProjectDataRepository _issuesRepo;
   final String issueId;
   late final Function() _removeListener;
 
   DetailViewModel({
-    required IssuesRepository issuesRepo,
+    required ProjectDataRepository issuesRepo,
     required this.issueId,
   })  : _issuesRepo = issuesRepo,
         super(const DetailState()) {

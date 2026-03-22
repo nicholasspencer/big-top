@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:big_top/core/async_value.dart';
-import 'package:big_top/project/repositories/issues_repository.dart';
+import 'package:big_top/project/repositories/project_data_repository.dart';
 import 'package:big_top/project/services/github_api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -81,10 +81,10 @@ MockClient _successClient() {
 }
 
 void main() {
-  group('IssuesRepository', () {
+  group('ProjectDataRepository', () {
     test('initial state is AsyncValue.none', () {
       final service = GitHubApiService(client: _successClient());
-      final repo = IssuesRepository(
+      final repo = ProjectDataRepository(
         apiService: service,
         token: _token,
       );
@@ -95,7 +95,7 @@ void main() {
 
     test('loadProject populates all entity types', () async {
       final service = GitHubApiService(client: _successClient());
-      final repo = IssuesRepository(
+      final repo = ProjectDataRepository(
         apiService: service,
         token: _token,
       );
@@ -120,7 +120,7 @@ void main() {
         return http.Response('Bad request', 400);
       });
       final service = GitHubApiService(client: client);
-      final repo = IssuesRepository(
+      final repo = ProjectDataRepository(
         apiService: service,
         token: _token,
         maxRetries: 0,
@@ -163,7 +163,7 @@ void main() {
         return http.Response(body, 200);
       });
       final service = GitHubApiService(client: client);
-      final repo = IssuesRepository(
+      final repo = ProjectDataRepository(
         apiService: service,
         token: _token,
         maxRetries: 3,
@@ -182,7 +182,7 @@ void main() {
 
     test('byStatus filters issues correctly', () async {
       final service = GitHubApiService(client: _successClient());
-      final repo = IssuesRepository(
+      final repo = ProjectDataRepository(
         apiService: service,
         token: _token,
       );
