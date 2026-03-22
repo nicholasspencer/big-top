@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'app/app_dependencies.dart';
 import 'app/authorized_dependencies.dart';
 import 'app/router.dart';
 import 'app/theme.dart';
-import 'core/async_value.dart';
-import 'auth/models/auth_session.dart';
 
 void main() {
   runApp(const BigTopApp());
@@ -27,20 +26,38 @@ class BigTopApp extends StatelessWidget {
   }
 }
 
-class _BigTopRouter extends StatelessWidget {
+class _BigTopRouter extends StatefulWidget {
   const _BigTopRouter();
 
   @override
-  Widget build(BuildContext context) {
-    // Watch auth state so router refreshes on auth changes
-    context.watch<AsyncValue<AuthSession>>();
+  State<_BigTopRouter> createState() => _BigTopRouterState();
+}
 
+class _BigTopRouterState extends State<_BigTopRouter> {
+  GoRouter? _router;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Create the router once, not on every auth state change.
+    // The router's own refreshListenable handles auth redirects.
+    _router ??= createRouter(context);
+  }
+
+  @override
+  void dispose() {
+    _router?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp.router(
       title: 'Big Top',
       theme: BigTopTheme.light,
       darkTheme: BigTopTheme.dark,
       themeMode: ThemeMode.dark,
-      routerConfig: createRouter(context),
+      routerConfig: _router!,
       debugShowCheckedModeBanner: false,
     );
   }
