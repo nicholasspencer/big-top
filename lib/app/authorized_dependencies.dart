@@ -7,7 +7,7 @@ import '../core/async_value.dart';
 import '../auth/models/auth_session.dart';
 import '../project/models/project_data.dart';
 import '../project/repositories/project_data_repository.dart';
-import '../project/repositories/project_repository.dart';
+import '../project/interactors/project_interactor.dart';
 import '../project/services/github_api_service.dart';
 
 class AuthorizedDependencies extends SingleChildStatelessWidget {
@@ -27,8 +27,10 @@ class AuthorizedDependencies extends SingleChildStatelessWidget {
             token: authValue.requireData().token,
           ),
         ),
-        StateNotifierProvider<ProjectRepository, ProjectState>(
-          create: (_) => ProjectRepository(),
+        StateNotifierProvider<ProjectInteractor, ProjectInteractorState>(
+          create: (ctx) => ProjectInteractor(
+            dataRepo: ctx.read<ProjectDataRepository>(),
+          ),
         ),
       ],
       child: child!,

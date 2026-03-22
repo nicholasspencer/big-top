@@ -59,7 +59,7 @@ final _eventJson = {
   'data': {'from': 'open', 'to': 'closed'},
 };
 
-MockClient _successClient() {
+MockClient successClient() {
   return MockClient((request) async {
     final path = request.url.path;
     String body;
@@ -83,7 +83,7 @@ MockClient _successClient() {
 void main() {
   group('ProjectDataRepository', () {
     test('initial state is AsyncValue.none', () {
-      final service = GitHubApiService(client: _successClient());
+      final service = GitHubApiService(client: successClient());
       final repo = ProjectDataRepository(
         apiService: service,
         token: _token,
@@ -94,7 +94,7 @@ void main() {
     });
 
     test('loadProject populates all entity types', () async {
-      final service = GitHubApiService(client: _successClient());
+      final service = GitHubApiService(client: successClient());
       final repo = ProjectDataRepository(
         apiService: service,
         token: _token,
@@ -181,7 +181,7 @@ void main() {
     });
 
     test('byStatus filters issues correctly', () async {
-      final service = GitHubApiService(client: _successClient());
+      final service = GitHubApiService(client: successClient());
       final repo = ProjectDataRepository(
         apiService: service,
         token: _token,

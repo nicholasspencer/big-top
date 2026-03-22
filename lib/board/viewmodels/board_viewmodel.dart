@@ -1,8 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/project/repositories/project_data_repository.dart';
-import 'package:big_top/project/repositories/project_repository.dart';
+import 'package:big_top/project/interactors/project_interactor.dart';
 
 part 'board_viewmodel.freezed.dart';
 
@@ -15,14 +14,11 @@ sealed class BoardState with _$BoardState {
 }
 
 class BoardViewModel extends StateNotifier<BoardState> {
-  final ProjectDataRepository _issuesRepo;
-  final ProjectRepository _projectRepo;
+  final ProjectInteractor _interactor;
 
   BoardViewModel({
-    required ProjectDataRepository issuesRepo,
-    required ProjectRepository projectRepo,
-  })  : _issuesRepo = issuesRepo,
-        _projectRepo = projectRepo,
+    required ProjectInteractor interactor,
+  })  : _interactor = interactor,
         super(const BoardState());
 
   Future<void> selectProject({
@@ -30,21 +26,23 @@ class BoardViewModel extends StateNotifier<BoardState> {
     required String repo,
     String? project,
   }) async {
-    _projectRepo.selectProject(owner: owner, repo: repo, project: project);
-    await refresh();
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      await _interactor.selectProject(
+        owner: owner,
+        repo: repo,
+        project: project,
+      );
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
   }
 
   Future<void> refresh() async {
-    final projectState = _projectRepo.state;
-    if (!projectState.isSelected) return;
-
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _issuesRepo.loadProject(
-        owner: projectState.owner!,
-        repo: projectState.repo!,
-        project: projectState.project ?? projectState.repo!,
-      );
+      await _interactor.refresh();
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
