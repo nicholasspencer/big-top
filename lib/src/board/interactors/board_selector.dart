@@ -1,10 +1,10 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/core/async_value.dart';
-import 'package:big_top/project/models/issue.dart';
-import 'package:big_top/project/models/project_data.dart';
-import 'package:big_top/project/repositories/project_data_repository.dart';
+import 'package:big_top/src/core/async_value.dart';
+import 'package:big_top/src/project/models/issue.dart';
+import 'package:big_top/src/project/models/project_data.dart';
+import 'package:big_top/src/project/repositories/project_data_repository.dart';
 
 part 'board_selector.freezed.dart';
 

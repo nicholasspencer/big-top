@@ -3,12 +3,14 @@ import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
-import '../core/async_value.dart';
 import '../auth/models/auth_session.dart';
+import '../auth/repositories/auth_repository.dart';
+import '../board/interactors/board_selector.dart';
+import '../board/viewmodels/board_viewmodel.dart';
+import '../core/async_value.dart';
+import '../project/interactors/project_interactor.dart';
 import '../project/models/project_data.dart';
 import '../project/repositories/project_data_repository.dart';
-import '../board/interactors/board_selector.dart';
-import '../project/interactors/project_interactor.dart';
 import '../project/services/github_api_service.dart';
 
 class AuthorizedDependencies extends SingleChildStatelessWidget {
@@ -36,6 +38,13 @@ class AuthorizedDependencies extends SingleChildStatelessWidget {
         StateNotifierProvider<BoardSelector, AsyncValue<List<BoardColumn>>>(
           create: (ctx) => BoardSelector(
             dataRepo: ctx.read<ProjectDataRepository>(),
+          ),
+        ),
+        StateNotifierProvider<BoardViewModel, AsyncValue<BoardData>>(
+          create: (ctx) => BoardViewModel(
+            interactor: ctx.read<ProjectInteractor>(),
+            boardSelector: ctx.read<BoardSelector>(),
+            authRepo: ctx.read<AuthRepository>(),
           ),
         ),
       ],

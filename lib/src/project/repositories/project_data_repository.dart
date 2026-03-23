@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/core/async_value.dart';
+import 'package:big_top/src/core/async_value.dart';
 import '../models/project_data.dart';
 import '../services/github_api_service.dart';
 

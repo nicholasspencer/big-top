@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:big_top/core/async_value.dart';
+import 'package:big_top/src/core/async_value.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

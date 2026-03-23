@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:big_top/project/models/comment.dart';
-import 'package:big_top/project/models/dependency.dart';
-import 'package:big_top/project/models/event.dart';
-import 'package:big_top/project/models/issue.dart';
-import 'package:big_top/project/models/label.dart';
-import 'package:big_top/project/models/project_data.dart';
-import 'package:big_top/project/services/github_api_service.dart';
+import 'package:big_top/src/project/models/comment.dart';
+import 'package:big_top/src/project/models/dependency.dart';
+import 'package:big_top/src/project/models/event.dart';
+import 'package:big_top/src/project/models/issue.dart';
+import 'package:big_top/src/project/models/label.dart';
+import 'package:big_top/src/project/models/project_data.dart';
+import 'package:big_top/src/project/services/github_api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 
-import 'package:big_top/core/async_value.dart';
-import 'package:big_top/detail/interactors/issue_detail_selector.dart';
-import 'package:big_top/detail/viewmodels/detail_viewmodel.dart';
-import 'package:big_top/project/repositories/project_data_repository.dart';
+import 'package:big_top/src/core/async_value.dart';
+import 'package:big_top/src/detail/interactors/issue_detail_selector.dart';
+import 'package:big_top/src/detail/viewmodels/detail_viewmodel.dart';
+import 'package:big_top/src/project/repositories/project_data_repository.dart';
 
 class DetailScreen extends StatelessWidget {
   final String issueId;

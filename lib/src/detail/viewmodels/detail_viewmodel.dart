@@ -1,7 +1,7 @@
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/core/async_value.dart';
-import 'package:big_top/detail/interactors/issue_detail_selector.dart';
+import 'package:big_top/src/core/async_value.dart';
+import 'package:big_top/src/detail/interactors/issue_detail_selector.dart';
 
 class DetailViewModel extends StateNotifier<AsyncValue<IssueDetail>> {
   final IssueDetailSelector _selector;
