@@ -1,37 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 
-import 'package:big_top/src/auth/repositories/auth_repository.dart';
-import 'package:big_top/src/board/interactors/board_selector.dart';
 import 'package:big_top/src/board/viewmodels/board_viewmodel.dart';
 import 'package:big_top/src/core/async_value.dart';
-import 'package:big_top/src/auth/models/auth_session.dart';
-import 'package:big_top/src/project/interactors/project_interactor.dart';
 import '../widgets/status_column.dart';
 
 class BoardScreen extends StatelessWidget {
   const BoardScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authValue = context.read<AsyncValue<AuthSession>>();
-    final session = authValue.data;
-
-    return StateNotifierProvider<BoardViewModel, AsyncValue<BoardData>>(
-      create: (ctx) => BoardViewModel(
-        interactor: ctx.read<ProjectInteractor>(),
-        boardSelector: ctx.read<BoardSelector>(),
-        username: session?.username,
-        avatarUrl: session?.avatarUrl,
-      ),
-      child: const _BoardScreenContent(),
-    );
-  }
-}
-
-class _BoardScreenContent extends StatelessWidget {
-  const _BoardScreenContent();
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +38,7 @@ class _BoardScreenContent extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Sign out',
-            onPressed: () => context.read<AuthRepository>().logout(),
+            onPressed: () => context.read<BoardViewModel>().logout(),
           ),
         ],
       ),
