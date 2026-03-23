@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/core/async_value.dart';
+import 'package:big_top/src/core/async_value.dart';
 import '../models/project_data.dart';
 import '../repositories/project_data_repository.dart';
 

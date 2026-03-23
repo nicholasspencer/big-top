@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:big_top/board/interactors/board_selector.dart';
-import 'package:big_top/core/async_value.dart';
+import 'package:big_top/src/board/interactors/board_selector.dart';
+import 'package:big_top/src/core/async_value.dart';
 
-import 'package:big_top/project/repositories/project_data_repository.dart';
-import 'package:big_top/project/services/github_api_service.dart';
+import 'package:big_top/src/project/repositories/project_data_repository.dart';
+import 'package:big_top/src/project/services/github_api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

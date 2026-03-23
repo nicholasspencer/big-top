@@ -1,6 +1,6 @@
-import 'package:big_top/core/async_value.dart';
-import 'package:big_top/auth/repositories/auth_repository.dart';
-import 'package:big_top/auth/services/github_auth_service.dart';
+import 'package:big_top/src/core/async_value.dart';
+import 'package:big_top/src/auth/repositories/auth_repository.dart';
+import 'package:big_top/src/auth/services/github_auth_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_state_notifier/flutter_state_notifier.dart';
 import 'package:provider/provider.dart';
 
-import 'package:big_top/auth/repositories/auth_repository.dart';
-import 'package:big_top/board/interactors/board_selector.dart';
-import 'package:big_top/board/viewmodels/board_viewmodel.dart';
-import 'package:big_top/core/async_value.dart';
-import 'package:big_top/auth/models/auth_session.dart';
-import 'package:big_top/project/interactors/project_interactor.dart';
+import 'package:big_top/src/auth/repositories/auth_repository.dart';
+import 'package:big_top/src/board/interactors/board_selector.dart';
+import 'package:big_top/src/board/viewmodels/board_viewmodel.dart';
+import 'package:big_top/src/core/async_value.dart';
+import 'package:big_top/src/auth/models/auth_session.dart';
+import 'package:big_top/src/project/interactors/project_interactor.dart';
 import '../widgets/status_column.dart';
 
 class BoardScreen extends StatelessWidget {

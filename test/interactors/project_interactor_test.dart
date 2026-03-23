@@ -1,7 +1,7 @@
-import 'package:big_top/core/async_value.dart';
-import 'package:big_top/project/interactors/project_interactor.dart';
-import 'package:big_top/project/repositories/project_data_repository.dart';
-import 'package:big_top/project/services/github_api_service.dart';
+import 'package:big_top/src/core/async_value.dart';
+import 'package:big_top/src/project/interactors/project_interactor.dart';
+import 'package:big_top/src/project/repositories/project_data_repository.dart';
+import 'package:big_top/src/project/services/github_api_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../repositories/project_data_repository_test.dart';

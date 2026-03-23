@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import 'app/app_dependencies.dart';
-import 'app/authorized_dependencies.dart';
-import 'app/router.dart';
-import 'app/theme.dart';
+import 'src/app/app_dependencies.dart';
+import 'src/app/authorized_dependencies.dart';
+import 'src/app/router.dart';
+import 'src/app/theme.dart';
 
 void main() {
   runApp(const BigTopApp());

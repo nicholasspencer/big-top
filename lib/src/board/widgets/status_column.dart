@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:big_top/project/models/issue.dart';
+import 'package:big_top/src/project/models/issue.dart';
 import 'issue_card.dart';
 
 class StatusColumn extends StatelessWidget {

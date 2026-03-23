@@ -1,9 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:state_notifier/state_notifier.dart';
 
-import 'package:big_top/board/interactors/board_selector.dart';
-import 'package:big_top/core/async_value.dart';
-import 'package:big_top/project/interactors/project_interactor.dart';
+import 'package:big_top/src/board/interactors/board_selector.dart';
+import 'package:big_top/src/core/async_value.dart';
+import 'package:big_top/src/project/interactors/project_interactor.dart';
 
 part 'board_viewmodel.freezed.dart';
 
