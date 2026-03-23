@@ -11,22 +11,9 @@ This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get sta
 
 ## Architecture
 
-Follow the [Flutter app architecture guide](https://docs.flutter.dev/app-architecture/guide) (MVVM):
+**This project follows the `predictable-flutter` skill for all Flutter/Dart code.** Load and follow `~/.chad/skills/predictable-flutter/SKILL.md` before writing or modifying any Flutter code.
 
-```
-Services → Repositories → ViewModels (StateNotifier) → Views
-```
-
-- **Services** (`lib/services/`) — wrap external APIs. Stateless. One per data source.
-- **Repositories** (`lib/repositories/`) — source of truth for domain data. Handle caching, error handling, retry logic. Transform raw data into domain models.
-- **ViewModels** (`lib/viewmodels/`) — StateNotifier subclasses. Consume repositories, expose UI state. One per view/feature.
-- **Views** (`lib/screens/`, `lib/widgets/`) — widgets only. No business logic. Render state from ViewModels.
-- **Models** (`lib/models/`) — domain data classes.
-
-**Do NOT:**
-- Put data-fetching logic in ViewModels
-- Name data-layer classes "Provider" (that's a Flutter package name, not a layer)
-- Mix concerns across layers
+The skill defines a three-layer architecture organized by longevity (Data → Domain → View), feature-first folder structure, StateNotifier + freezed state management, and strict dependency rules between layers. Follow it as written.
 
 ## Quick Reference
 
