@@ -20,6 +20,8 @@ sealed class Issue with _$Issue {
     @Default([]) List<String> dependencies,
     @Default(0) int dependencyCount,
     @Default(0) int commentCount,
+    @Default([]) List<String> labels,
+    @Default('') String assignee,
   }) = _Issue;
 
   factory Issue.fromJson(Map<String, dynamic> json) => _$IssueFromJson(json);

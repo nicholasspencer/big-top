@@ -55,6 +55,22 @@ class IssueCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (issue.assignee.isNotEmpty)
+                    Tooltip(
+                      message: issue.assignee,
+                      child: CircleAvatar(
+                        radius: 10,
+                        backgroundColor:
+                            theme.colorScheme.primaryContainer,
+                        child: Text(
+                          issue.assignee[0].toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 10,
+                            color: theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
               const SizedBox(height: 4),
@@ -66,6 +82,33 @@ class IssueCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
+              if (issue.labels.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: [
+                    for (final label in issue.labels)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.secondaryContainer,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          label,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color:
+                                theme.colorScheme.onSecondaryContainer,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
               if (issue.dependencyCount > 0 || issue.commentCount > 0) ...[
                 const SizedBox(height: 8),
                 Row(

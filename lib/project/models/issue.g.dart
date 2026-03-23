@@ -24,6 +24,10 @@ _Issue _$IssueFromJson(Map<String, dynamic> json) => _Issue(
       const [],
   dependencyCount: (json['dependency_count'] as num?)?.toInt() ?? 0,
   commentCount: (json['comment_count'] as num?)?.toInt() ?? 0,
+  labels:
+      (json['labels'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+  assignee: json['assignee'] as String? ?? '',
 );
 
 Map<String, dynamic> _$IssueToJson(_Issue instance) => <String, dynamic>{
@@ -40,4 +44,6 @@ Map<String, dynamic> _$IssueToJson(_Issue instance) => <String, dynamic>{
   'dependencies': instance.dependencies,
   'dependency_count': instance.dependencyCount,
   'comment_count': instance.commentCount,
+  'labels': instance.labels,
+  'assignee': instance.assignee,
 };
